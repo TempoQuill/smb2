@@ -2598,10 +2598,8 @@ byte_BANKC_93A6:
 
 IFDEF GS_MUSIC
 CastRoll_NewSong:
-	LDY #0
-	JSR PlayMusic
-	LDY #MUSIC_POST_CREDITS
-	JSR PlayMusic
+	LDA #MUSIC_POST_CREDITS
+	STA MusicQueue1
 	INC CastRollSequenceIndex
 	RTS
 ENDIF

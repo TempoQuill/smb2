@@ -4562,6 +4562,8 @@ WaitForNMI_TitleScreen:
 	LDA TitleScreenPPUDataPointers + 1, X
 	STA RAM_PPUDataBufferPointer + 1
 
+	JSR AudioQueueRoutine
+
 	LDA #$00
 	STA NMIWaitFlag
 WaitForNMI_TitleScreenLoop:
@@ -4937,8 +4939,6 @@ IFNDEF GS_MUSIC
 	LDA #Music1_Title
 ELSE
 	LDA #MUSIC_TITLE
-	LDA #1
-	STA zMusicPlaying
 ENDIF
 	STA MusicQueue1
 	JSR WaitForNMI_TitleScreen_TurnOnPPU
@@ -5231,7 +5231,10 @@ IFNDEF GS_MUSIC
 	LDA #Music2_StopMusic
 	STA MusicQueue2
 ELSE
-	JSR InitSound
+	STY StackArea + 2
+	LDY #0
+	JSR PlayMusic
+	LDY StackArea + 2
 ENDIF
 	JSR WaitForNMI_TitleScreen
 
@@ -5313,6 +5316,8 @@ WaitForNMI_Ending:
 	STA RAM_PPUDataBufferPointer
 	LDA EndingPPUDataPointers + 1, X
 	STA RAM_PPUDataBufferPointer + 1
+
+	JSR AudioQueueRoutine
 
 	LDA #$00
 	STA NMIWaitFlag
@@ -7392,4 +7397,25 @@ CreateEnemy_Bank1_FoundSlot:
 	JSR UnlinkEnemyFromRawData_Bank1
 
 	LDX byte_RAM_12
+	RTS
+
+AudioQueueRoutine:
+	PSH
+	LDY SoundEffectQueue1
+	JSR MonitorSFX
+	LDY SoundEffectQueue2
+	JSR MonitorSFX
+	LDY SoundEffectQueue3
+	JSR MonitorSFX
+	LDY DPCMQueue
+	JSR MonitorSFX
+	LDY #$ff
+	STY SoundEffectQueue1
+	STY SoundEffectQueue2
+	STY SoundEffectQueue3
+	STY DPCMQueue
+	LDA MusicQueue1
+	ORA MusicQueue2
+	JSR MonitorMusic
+	PLL
 	RTS

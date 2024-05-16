@@ -162,7 +162,6 @@ TerminateExpBarSound:
 
 GetLevelMusic:
 	STY StackArea + 2
-	STA StackArea + 1
 	BPL @Play
 	AND #$7f
 	ASL A
@@ -173,12 +172,7 @@ GetLevelMusic:
 	STA zCurTrackAudioPointer + 1
 	JMP (zCurTrackAudioPointer)
 @Play:
-	LDY #0
-	JSR PlayMusic
-	TAY
-	JSR PlayMusic
 	LDY StackArea + 2
-	LDA StackArea + 1
 	RTS
 
 @Specialties:

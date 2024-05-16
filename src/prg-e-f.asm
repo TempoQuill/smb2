@@ -652,13 +652,10 @@ loc_BANKF_E2B2:
 
 IFNDEF GS_MUSIC
 	LDA #Music1_CharacterSelect
-	STA MusicQueue1
 ELSE
-	LDY #0
-	JSR PlayMusic
-	LDY #MUSIC_MAIN_MENU
-	JSR PlayMusic
+	LDA #MUSIC_MAIN_MENU
 ENDIF
+	STA MusicQueue1
 
 	LDY #$3F
 loc_BANKF_E2CA:
@@ -698,13 +695,10 @@ CharacterSelect_ChangeCharacter:
 	DEC CurrentCharacter
 IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
 ELSE
-	STY StackArea + 2
-	LDY #SFX_READ_TEXT
-	JSR PlaySFX
-	LDY StackArea + 2
+	LDA #SFX_READ_TEXT
 ENDIF
+	STA SoundEffectQueue1
 
 loc_BANKF_E2FE:
 	LDA Player1JoypadPress
@@ -714,13 +708,10 @@ loc_BANKF_E2FE:
 	INC CurrentCharacter
 IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
 ELSE
-	STY StackArea + 2
-	LDY #SFX_READ_TEXT
-	JSR PlaySFX
-	LDY StackArea + 2
+	LDA #SFX_READ_TEXT
 ENDIF
+	STA SoundEffectQueue1
 
 loc_BANKF_E30B:
 	LDA CurrentCharacter
@@ -811,13 +802,10 @@ CharacterSelectMenuLoop:
 loc_BANKF_E3AE:
 IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
 ELSE
-	STY StackArea + 2
-	LDY #SFX_HIT_END_OF_EXP_BAR
-	JSR PlaySFX
-	LDY StackArea + 2
+	LDA #SFX_HIT_END_OF_EXP_BAR
 ENDIF
+	STA SoundEffectQueue1
 	LDX CurrentWorld
 	LDY CurrentLevel
 	JSR DisplayLevelTitleCardText
@@ -865,11 +853,11 @@ loc_BANKF_E3EC:
 IFNDEF GS_MUSIC
 	LDA #Music2_StopMusic
 	STA MusicQueue2
-	RTS
 ELSE
 	LDY #0
-	JMP PlayMusic
+	JSR PlayMusic
 ENDIF
+	RTS
 
 
 
@@ -1211,16 +1199,10 @@ InitializeJar:
 
 IFNDEF GS_MUSIC
 	LDA #Music1_Inside
+ELSE
+	LDA #MUSIC_RUINS_OF_ALPH_INTERIOR
+ENDIF
 	STA MusicQueue1
-ENDIF
-IFDEF GS_MUSIC
-	STY StackArea + 2
-	LDY #0
-	JSR PlayMusic
-	LDY #MUSIC_RUINS_OF_ALPH_INTERIOR
-	JSR PlayMusic
-	LDY StackArea + 2
-ENDIF
 	LDA #$01
 	STA CurrentMusicIndex
 	JMP loc_BANKF_E5E1
@@ -1231,8 +1213,10 @@ InitializeSubspace:
 
 IFNDEF GS_MUSIC
 	LDA #Music1_Subspace
-	STA MusicQueue1
+ELSE
+	LDA #MUSIC_MT_MOON_SQUARE
 ENDIF
+	STA MusicQueue1
 	LDA #$04
 	STA CurrentMusicIndex
 
@@ -1306,11 +1290,10 @@ loc_BANKF_E627:
 	BNE loc_BANKF_E64C
 
 	LDA LevelMusicIndexes, Y
-IFNDEF GS_MUSIC
-	STA MusicQueue1
-ELSE
+IFDEF GS_MUSIC
 	JSR GetLevelMusic
 ENDIF
+	STA MusicQueue1
 
 loc_BANKF_E64C:
 	LDA #PRGBank_0_1
@@ -1392,8 +1375,8 @@ IFNDEF GS_MUSIC
 	LDA #Music2_GameOver
 	STA MusicQueue2
 ELSE
-	LDY #SFX_QUIT_SLOTS
-	JSR PlaySFX
+	LDA #SFX_QUIT_SLOTS
+	STA SoundEffectQueue1
 ENDIF
 	JSR WaitForNMI_TurnOffPPU
 
@@ -1531,12 +1514,8 @@ IFNDEF GS_MUSIC
 	LDA #Music2_SlotWarpFanfare
 	STA MusicQueue2
 ELSE
-	STY StackArea + 2
-	LDY #0
-	JSR PlayMusic
-	LDY #SFX_GET_EGG
-	JSR PlaySFX
-	LDY StackArea + 2
+	LDA #SFX_GET_EGG
+	STA SoundEffectQueue1
 ENDIF
 	JSR Delay160Frames
 
@@ -1552,7 +1531,10 @@ IFNDEF GS_MUSIC
 	LDA #Music2_StopMusic ; Stop music
 	STA MusicQueue2
 ELSE
-	JSR InitSound
+	STY StackArea + 2
+	LDY #0
+	JSR PlayMusic
+	LDY StackArea + 2
 ENDIF
 
 	; Increase current characters "contribution" counter
@@ -1620,8 +1602,8 @@ ENDIF
 
 loc_BANKF_E7F2:
 IFDEF GS_MUSIC
-	LDY #MUSIC_GAME_CORNER
-	JSR PlayMusic
+	LDA #MUSIC_GAME_CORNER
+	STA MusicQueue1
 ENDIF
 	LDA #$03
 	STA ObjectXLo + 3
@@ -1785,8 +1767,7 @@ IFNDEF GS_MUSIC
 	STA MusicQueue2
 ELSE
 	LDA SlotSoundEffects, Y
-	TAY
-	JSR PlaySFX
+	STA SoundEffectQueue1
 ENDIF
 	LDA #$A0
 	STA byte_RAM_6
@@ -1818,8 +1799,8 @@ IFNDEF GS_MUSIC
 	LDA #Music2_DeathJingle
 	STA MusicQueue2
 ELSE
-	LDY #SFX_DEX_FANFARE_LESS_THAN_20
-	JSR PlaySFX
+	LDA #SFX_DEX_FANFARE_LESS_THAN_20
+	STA SoundEffectQueue1
 ENDIF
 	JSR WaitForNMI
 
@@ -1872,11 +1853,12 @@ IFNDEF GS_MUSIC
 	LDA #Music2_DeathJingle
 	STA MusicQueue2
 ELSE
-	LDY #SFX_CHOOSE_A_CARD
-	JSR PlaySFX
+	LDA #SFX_CHOOSE_A_CARD
+	STA SoundEffectQueue1
+	JSR WaitForNMI
 	JSR WaitSFX
-	LDY #SFX_DEX_FANFARE_LESS_THAN_20
-	JSR PlaySFX
+	LDA #SFX_DEX_FANFARE_LESS_THAN_20
+	STA SoundEffectQueue1
 	LDA #Music2_DeathJingle
 ENDIF
 
@@ -2179,6 +2161,19 @@ WaitForNMILoop:
 
 	RTS ; If yes, go back to what we were doing
 
+MonitorMusic:
+	REQ
+	LDY #0
+	STY MusicQueue1
+	STY MusicQueue2
+	JSR PlayMusic
+	TAY
+	JMP PlayMusic
+
+MonitorSFX:
+	CPY #$ff
+	REQ
+	JMP PlaySFX
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -2206,13 +2201,10 @@ loc_BANKF_EAD2:
 	STA ObjectXLo, X
 IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
 ELSE
-	STY StackArea + 2
-	LDY #SFX_STOP_SLOT
-	JSR PlaySFX
-	LDY StackArea + 2
+	LDA #SFX_STOP_SLOT
 ENDIF
+	STA SoundEffectQueue1
 	RTS
 
 ; End of function sub_BANKF_EAC2
@@ -2842,9 +2834,50 @@ RESET_MMC5:
 	LDA #$80 | PRGBank_FINAL_2 ; ROM bank F
 	STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
 
-	JMP RESET
+;
+; Public RESET
+;
+; This code is called when the NES is reset and handles some boilerplate
+; initialization before starting the game loop.
+;
+; The NMI handles frame rendering.
+;
+RESET:
+	SEI
+	CLD
+	LDA #PPUCtrl_Base2000 | PPUCtrl_WriteHorizontal | PPUCtrl_Sprite0000 | PPUCtrl_Background0000 | PPUCtrl_SpriteSize8x8 | PPUCtrl_Background0000 | PPUCtrl_NMIDisabled
+	STA PPUCTRL
+	LDX #$FF ; Reset stack pointer
+	TXS
+
+RESET_VBlankLoop:
+	; Wait for first VBlank
+	LDA PPUSTATUS
+	AND #PPUStatus_VBlankHit
+	BEQ RESET_VBlankLoop
+
+RESET_VBlank2Loop:
+	; Wait for second VBlank
+	LDA PPUSTATUS
+	BPL RESET_VBlank2Loop
+	LDA #MMC5_VMirror
+	STA MMC5_NametableMapping
+	; Maintain location of the next subroutine
+IFDEF GS_MUSIC
+	JSR InitSound
+	LDA #0
+	STA MusicQueue1
+	STA MusicQueue2
+	LDA #$ff
+	STA SoundEffectQueue1
+	STA SoundEffectQueue2
+	STA SoundEffectQueue3
+	STA DPCMQueue
+ENDIF
+	JMP StartGame
 
 
+ChangeCHRBanks:
 ChangeCHRBanks_MMC5:
 	LDA SpriteCHR1
 	STA MMC5_CHRBankSwitch1
@@ -2860,24 +2893,17 @@ ChangeCHRBanks_MMC5:
 
 	LDA BackgroundCHR1
 	STA MMC5_CHRBankSwitch5
-	ADC #$01
-	STA MMC5_CHRBankSwitch6
-
-	LDA BackgroundCHR2
-	STA MMC5_CHRBankSwitch7
-	ADC #$01
-	STA MMC5_CHRBankSwitch8
-
-	LDA BackgroundCHR1
 	STA MMC5_CHRBankSwitch9
 	ADC #$01
+	STA MMC5_CHRBankSwitch6
 	STA MMC5_CHRBankSwitch10
 
 	LDA BackgroundCHR2
+	STA MMC5_CHRBankSwitch7
 	STA MMC5_CHRBankSwitch11
 	ADC #$01
+	STA MMC5_CHRBankSwitch8
 	STA MMC5_CHRBankSwitch12
-
 	RTS
 ENDIF
 
@@ -3259,11 +3285,10 @@ DecrementPlayerStateTimers_Zero:
 
 	LDY CurrentMusicIndex
 	LDA LevelMusicIndexes, Y
-IFNDEF GS_MUSIC
-	STA MusicQueue1
-ELSE
-	JMP GetLevelMusic
+IFDEF GS_MUSIC
+	JSR GetLevelMusic
 ENDIF
+	STA MusicQueue1
 
 RunFrame_Exit:
 	RTS
@@ -4534,11 +4559,10 @@ EnsureCorrectMusic:
 	BCS EnsureCorrectMusic_Exit
 
 	LDA LevelMusicIndexes, X
-IFNDEF GS_MUSIC
-	STA MusicQueue1
-ELSE
-	JMP GetLevelMusic
+IFDEF GS_MUSIC
+	JSR GetLevelMusic
 ENDIF
+	STA MusicQueue1
 
 EnsureCorrectMusic_Exit:
 	RTS
@@ -4638,15 +4662,14 @@ IFNDEF GS_MUSIC
 	; BUG: Setting DPCM at the same time as music
 	; Not that it matters if we're switching to the G/S sound engine
 	LDA #DPCM_PlayerDeath
-	STA DPCMQueue
 ELSE
 	STY StackArea + 2
 	LDY #0
 	JSR PlayMusic
-	LDY #SFX_DEX_FANFARE_LESS_THAN_20
-	JSR PlaySFX
 	LDY StackArea + 2
+	LDA #SFX_DEX_FANFARE_LESS_THAN_20
 ENDIF
+	STA DPCMQueue
 	RTS
 
 ;
@@ -5271,46 +5294,6 @@ LoadMarioSleepingCHRBanks:
 	RTS
 
 ;
-; Public RESET
-;
-; This code is called when the NES is reset and handles some boilerplate
-; initialization before starting the game loop.
-;
-; The NMI handles frame rendering.
-;
-RESET:
-	SEI
-	CLD
-	LDA #PPUCtrl_Base2000 | PPUCtrl_WriteHorizontal | PPUCtrl_Sprite0000 | PPUCtrl_Background0000 | PPUCtrl_SpriteSize8x8 | PPUCtrl_Background0000 | PPUCtrl_NMIDisabled
-	STA PPUCTRL
-	LDX #$FF ; Reset stack pointer
-	TXS
-
-RESET_VBlankLoop:
-	; Wait for first VBlank
-	LDA PPUSTATUS
-	AND #PPUStatus_VBlankHit
-	BEQ RESET_VBlankLoop
-
-RESET_VBlank2Loop:
-	; Wait for second VBlank
-	LDA PPUSTATUS
-	BPL RESET_VBlank2Loop
-	LDA #MMC5_VMirror
-	STA MMC5_NametableMapping
-	; Maintain location of the next subroutine
-IFNDEF GS_MUSIC
-	JSR InitSound
-ENDIF
-	JMP StartGame
-
-
-;
-; Switches the current CHR banks
-;
-ChangeCHRBanks:
-	JMP ChangeCHRBanks_MMC5
-;
 ; Calling this one will save the changed bank
 ; to RAM, so if something uses the below version
 ; the original bank set with this can be restored.
@@ -5345,8 +5328,8 @@ ENDIF
 ; can be recalled later (mostly for temporary switches,
 ; like music handling and such)
 ;
-ChangeMappedPRGBankWithoutSaving:
 IFNDEF GS_MUSIC
+ChangeMappedPRGBankWithoutSaving:
 	ASL A
 
 	ORA #$80
@@ -5354,8 +5337,6 @@ IFNDEF GS_MUSIC
 	ORA #$01
 	STA MMC5_PRGBankSwitch3
 	RTS
-ELSE
-	JMP SwitchLower16K
 ENDIF
 
 ;
@@ -5377,6 +5358,9 @@ IRQ:
 PushLower16K:
 	STA zWindow1
 
+IFDEF GS_MUSIC
+ChangeMappedPRGBankWithoutSaving:
+ENDIF
 SwitchLower16K:
 	ASL A
 	ORA #$80

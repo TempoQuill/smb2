@@ -3355,7 +3355,10 @@ IFNDEF GS_MUSIC
 	LDA #Music2_StopMusic
 	STA MusicQueue2
 ELSE
-	JMP InitSound
+	STY StackArea + 1
+	LDY #0
+	JSR PlayMusic
+	LDY StackArea + 1
 ENDIF
 
 LoadAreaMusic_Exit:
