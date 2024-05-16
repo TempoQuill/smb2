@@ -492,8 +492,15 @@ DebugMenu_MenuStart:
 
 DebugMenu_MenuMove:
 DebugMenu_MenuChange:
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
 	STA SoundEffectQueue1
+ELSE
+	STY StackArea + 2
+	LDY #SFX_EGG_CRACK
+	JSR PlaySFX
+	LDY StackArea + 2
+ENDIF
 	RTS
 
 DebugMenu_MenuConfirm:

@@ -1,3 +1,4 @@
+.enum 0
 ;
 ; NES and cart RAM
 ; ================
@@ -261,11 +262,6 @@ EnemyMovementDirection:
 	.dsb 1 ; 7                ; $0076
 	.dsb 1 ; 8                ; $0077
 
-; FOR RENT
-IFDEF PLAYER_HITBOX
-PlayerHitbox:
-ENDIF
-	.dsb 1 ; $0078
 ; This is set on entering subspace, depending
 ; on which particular mushroom is on the screen
 ; (used to determine if it should show up
@@ -278,71 +274,68 @@ ENDIF
 ; etc.
 ;
 EnemyVariable:
-	.dsb 1 ; $0079
-	.dsb 1 ; 1 ; $007a
-	.dsb 1 ; 2 ; $007b
-	.dsb 1 ; 3 ; $007c
-	.dsb 1 ; 4 ; $007d
-	.dsb 1 ; 5 ; $007e
-	.dsb 1 ; 6 ; $007f
-	.dsb 1 ; 7 ; $0080
-	.dsb 1 ; 8 ; $0081
+	.dsb 1 ; $0078
+	.dsb 1 ; 1 ; $0079
+	.dsb 1 ; 2 ; $007a
+	.dsb 1 ; 3 ; $007b
+	.dsb 1 ; 4 ; $007c
+	.dsb 1 ; 5 ; $007d
+	.dsb 1 ; 6 ; $007e
+	.dsb 1 ; 7 ; $007f
+	.dsb 1 ; 8 ; $0080
 
 PlayerStateTimer:
-	.dsb 1 ; $0082
+	.dsb 1 ; $0081
 FreeSubconsTimer:
-	.dsb 1 ; $0083
+	.dsb 1 ; $0082
 PlayerWalkFrameCounter: ; used for controlling speed of walk animation
-	.dsb 1 ; $0084
+	.dsb 1 ; $0083
 DamageInvulnTime:
-	.dsb 1 ; $0085
+	.dsb 1 ; $0084
 ObjectTimer1:
-	.dsb 1 ; $0086
-	.dsb 1 ; 1                ; $0087
-	.dsb 1 ; 2                ; $0088
-	.dsb 1 ; 3                ; $0089
-	.dsb 1 ; 4                ; $008a
-	.dsb 1 ; 5                ; $008b
-	.dsb 1 ; 6                ; $008c
-	.dsb 1 ; 7                ; $008d
+	.dsb 1 ; $0085
+	.dsb 1 ; 1                ; $0086
+	.dsb 1 ; 2                ; $0087
+	.dsb 1 ; 3                ; $0088
+	.dsb 1 ; 4                ; $0089
+	.dsb 1 ; 5                ; $008a
+	.dsb 1 ; 6                ; $008b
+	.dsb 1 ; 7                ; $008c
 FreeSubconsCorkCounter:
-	.dsb 1 ; $008e
+	.dsb 1 ; $008d
 ; $00 Mario
 ; $01 Princess
 ; $02 Toad
 ; $03 Luigi
 CurrentCharacter:
-	.dsb 1 ; $008f
+	.dsb 1 ; $008e
 ObjectType:
-	.dsb 1 ; $0090
-	.dsb 1 ; 1                ; $0091
-	.dsb 1 ; 2                ; $0092
-	.dsb 1 ; 3                ; $0093
-	.dsb 1 ; 4                ; $0094
-	.dsb 1 ; 5                ; $0095
-	.dsb 1 ; 6                ; $0096
-	.dsb 1 ; 7                ; $0097
-	.dsb 1 ; 8                ; $0098
+	.dsb 1 ; $008f
+	.dsb 1 ; 1                ; $0090
+	.dsb 1 ; 2                ; $0091
+	.dsb 1 ; 3                ; $0092
+	.dsb 1 ; 4                ; $0093
+	.dsb 1 ; 5                ; $0094
+	.dsb 1 ; 6                ; $0095
+	.dsb 1 ; 7                ; $0096
+	.dsb 1 ; 8                ; $0097
 ; $00 = on ground or enemy, $01 = in air
 PlayerInAir:
-	.dsb 1 ; $0099
-IFNDEF PLAYER_HITBOX
+	.dsb 1 ; $0098
 PlayerHitbox:
-ENDIF
 PlayerDucking:
-	.dsb 1 ; $009a
+	.dsb 1 ; $0099
 PlayerWalkFrame:
-	.dsb 1 ; $009b
+	.dsb 1 ; $009a
 HoldingItem:
-	.dsb 1 ; $009c
+	.dsb 1 ; $009b
 ; $00 = left, $01 = right
 PlayerDirection:
+	.dsb 1 ; $009c
+
 	.dsb 1 ; $009d
-; This (unused?) counter increments as long as the player is standing on an
-; object, including a couple frames while lifting an object.
-PlayerRidingTimer:
-	.dsb 1 ; $009e
 ObjectAnimationTimer:
+	.dsb 1 ; $009e
 	.dsb 1 ; $009f
 	.dsb 1 ; $00a0
 	.dsb 1 ; $00a1
@@ -351,13 +344,13 @@ ObjectAnimationTimer:
 	.dsb 1 ; $00a4
 	.dsb 1 ; $00a5
 	.dsb 1 ; $00a6
-	.dsb 1 ; $00a7
 
 ; Set to 7 when lifting, then stays at 1
 ; Note that this doesn't seem to actually
 ; make you carry an item, it just THINKS
 ; it's being carried.
 ObjectBeingCarriedTimer:
+	.dsb 1 ; $00a7
 	.dsb 1 ; $00a8
 	.dsb 1 ; $00a9
 	.dsb 1 ; $00aa
@@ -366,9 +359,9 @@ ObjectBeingCarriedTimer:
 	.dsb 1 ; $00ad
 	.dsb 1 ; $00ae
 	.dsb 1 ; $00af
-	.dsb 1 ; $00b0
 
 EnemyArray_B1:
+	.dsb 1 ; $00b0
 	.dsb 1 ; $00b1
 	.dsb 1 ; $00b2
 	.dsb 1 ; $00b3
@@ -377,79 +370,82 @@ EnemyArray_B1:
 	.dsb 1 ; $00b6
 	.dsb 1 ; $00b7
 	.dsb 1 ; $00b8
-	.dsb 1 ; $00b9
 
 ; Number of pixels to shift the camera on the next frame to get to its "ideal"
 ; position. The left/right bounds of the area will overrule this.
 MoveCameraX:
-	.dsb 1 ; $00ba
+	.dsb 1 ; $00b9
+; SMB2
 CurrentMusicPointer:
 	.dsb 2 ; $00bb
 NextFrequencyLo:
 	.dsb 1 ; $00bd
 NextFrequencyHi:
 	.dsb 1 ; $00be
-; $00BF and $00C0 are never written, but referenced by the music engine.
-; Seems like they were intended to be either instrument start offets or
-; duty/volume/envelope for the square channels, but it's not totally clear
-; from the code, and doesn't actually function as written?
-MusicSquareInstrumentStartOffset: ; (unused; read but never initialized)
-	.dsb 1 ; $00bf
-MusicSquareEnvelope: ; (unused; always overwritten)
-	.dsb 1 ; $00c0
 SoundEffect1DataOffset:
-	.dsb 1 ; $00c1
-IFNDEF EXPAND_MUSIC
-MusicSquare2Lo: ; (unused)
-ENDIF
-	.dsb 1 ; $00c2
-	.dsb 1 ; $00c3
+	.dsb 1 ; $00ba
 SoundEffectTimer2:
+	.dsb 1 ; $00bf
+; FOR RENT
+	.dsb 1 ; $00c0
+	.dsb 1 ; $00c1
+zPlayerState:
+	.dsb 1 ; $00c2
+zWindow1:
+	.dsb 1 ; $00c3
+; G/S
+zAudioPointers:
+zCurTrackAudioPointer:
 	.dsb 1 ; $00c4
-; FOR RENT
 	.dsb 1 ; $00c5
-; FOR RENT
+zNoiseSampleAddress:
 	.dsb 1 ; $00c6
-PlayerAnimationFrame:
 	.dsb 1 ; $00c7
-PPUScrollYHiMirror:
+zDPCMAddress:
 	.dsb 1 ; $00c8
-PPUScrollXHiMirror:
 	.dsb 1 ; $00c9
+zAudioPointersEnd:
+
+PlayerAnimationFrame:
+	.dsb 1 ; $00ca
+PPUScrollYHiMirror:
+	.dsb 1 ; $00cb
+PPUScrollXHiMirror:
+	.dsb 1 ; $00cc
 ; Not sure about this, but seems to be that way
 ScreenYHi:
-	.dsb 1 ; $00ca
+	.dsb 1 ; $00cd
 ; Not sure about this either
 ScreenYLo:
-	.dsb 1 ; $00cb
+	.dsb 1 ; $00ce
 
 RawEnemyData:
-	.dsb 1 ; $00cc
-	.dsb 1 ; $00cd
+	.dsb 1 ; $00cf
+	.dsb 1 ; $00d0
 
 ; Drawing boundary table, used when scrolling in either direction
 ; - Upper nybble: tile offset (columns/rows)
 ; - Lower nybble indicates the page
 BackgroundUpdateBoundary: ; full draw
-	.dsb 1 ; $00ce
-BackgroundUpdateBoundaryBackward: ; left/top
-	.dsb 1 ; $00cf
-BackgroundUpdateBoundaryForward: ; right/bottom
-	.dsb 1 ; $00d0
-DrawBackgroundTilesPPUAddrHi:
 	.dsb 1 ; $00d1
-DrawBackgroundTilesPPUAddrLo:
+BackgroundUpdateBoundaryBackward: ; left/top
 	.dsb 1 ; $00d2
-DrawBackgroundTilesPPUAddrLoBackward:
+BackgroundUpdateBoundaryForward: ; right/bottom
 	.dsb 1 ; $00d3
-DrawBackgroundTilesPPUAddrLoForward:
+DrawBackgroundTilesPPUAddrHi:
 	.dsb 1 ; $00d4
-byte_RAM_D5:
+DrawBackgroundTilesPPUAddrLo:
 	.dsb 1 ; $00d5
-CopyBackgroundCounter:
+DrawBackgroundTilesPPUAddrLoBackward:
 	.dsb 1 ; $00d6
-ReadLevelDataOffset:
+DrawBackgroundTilesPPUAddrLoForward:
 	.dsb 1 ; $00d7
+byte_RAM_D5:
+	.dsb 1 ; $00d8
+CopyBackgroundCounter:
+	.dsb 1 ; $00d9
+ReadLevelDataOffset:
+	.dsb 1 ; $00da
 
 ;
 ; %xxxxxADD
@@ -458,73 +454,70 @@ ReadLevelDataOffset:
 ; - D = direction ($00 = none, $01 = up/left, $02 = down/right)
 ;
 NeedsScroll:
-	.dsb 1 ; $00d8
+	.dsb 1 ; $00db
 ; Attribute data to use for the background tiles scrolling into view.
 ; For vertical, this covers four rows of tiles, right-to-left.
 ; For horizontal area, this covers four columns of tiles, bottom-to-top.
 ScrollingPPUAttributeUpdateBuffer:
-	.dsb 1 ; $00d9
-	.dsb 1 ; $00da
-	.dsb 1 ; $00db
 	.dsb 1 ; $00dc
 	.dsb 1 ; $00dd
 	.dsb 1 ; $00de
 	.dsb 1 ; $00df
 	.dsb 1 ; $00e0
+	.dsb 1 ; $00e1
+	.dsb 1 ; $00e2
+	.dsb 1 ; $00e3
 ; Attributes update up
 byte_RAM_E1:
-	.dsb 1 ; $00e1
+	.dsb 1 ; $00e4
 ; Attributes update down
 byte_RAM_E2:
-	.dsb 1 ; $00e2
-PPUAttributeUpdateCounter:
-	.dsb 1 ; $00e3
-byte_RAM_E4:
-	.dsb 1 ; $00e4
-byte_RAM_E5:
 	.dsb 1 ; $00e5
-byte_RAM_E6:
+PPUAttributeUpdateCounter:
 	.dsb 1 ; $00e6
-byte_RAM_E7:
+byte_RAM_E4:
 	.dsb 1 ; $00e7
-byte_RAM_E8:
+byte_RAM_E5:
 	.dsb 1 ; $00e8
-ReadLevelDataAddress:
+byte_RAM_E6:
 	.dsb 1 ; $00e9
+byte_RAM_E7:
 	.dsb 1 ; $00ea
-NMIWaitFlag:
+byte_RAM_E8:
 	.dsb 1 ; $00eb
-IsHorizontalLevel:
+ReadLevelDataAddress:
 	.dsb 1 ; $00ec
-byte_RAM_ED:
 	.dsb 1 ; $00ed
-byte_RAM_EE:
+NMIWaitFlag:
 	.dsb 1 ; $00ee
-byte_RAM_EF:
+IsHorizontalLevel:
 	.dsb 1 ; $00ef
+byte_RAM_ED:
+	.dsb 1 ; $00f0
+byte_RAM_EE:
+	.dsb 1 ; $00f1
+byte_RAM_EF:
+	.dsb 1 ; $00f2
 ; Set this to the location of PPU data to be drawn
 ; to the screen (somehow).
 ;
 ; Common value of $0301, which is where minor
 ; PPU updates are stored in memory.
 RAM_PPUDataBufferPointer:
-	.dsb 2 ; $00f0
+	.dsb 2 ; $00f3
 byte_RAM_F2:
-	.dsb 1 ; $00f2
-byte_RAM_F3:
-	.dsb 1 ; $00f3
-byte_RAM_F4:
-	.dsb 1 ; $00f4
-Player1JoypadPress:
 	.dsb 1 ; $00f5
-Player2JoypadPress:
+byte_RAM_F3:
 	.dsb 1 ; $00f6
-Player1JoypadHeld:
+byte_RAM_F4:
 	.dsb 1 ; $00f7
-Player2JoypadHeld:
+Player1JoypadPress:
 	.dsb 1 ; $00f8
+Player2JoypadPress:
 	.dsb 1 ; $00f9
+Player1JoypadHeld:
 	.dsb 1 ; $00fa
+Player2JoypadHeld:
 	.dsb 1 ; $00fb
 PPUScrollYMirror:
 	.dsb 1 ; $00fc
@@ -823,15 +816,12 @@ SpriteFlickerSlot:
 ; FOR RENT
 	.dsb 1 ; $0401
 ; FOR RENT
-BossTileset:
 	.dsb 1 ; $0402
 ; FOR RENT
 	.dsb 1 ; $0403
-; unused? written but never read
-PreviousCharacter:
+; FOR RENT
 	.dsb 1 ; $0404
-; unused? written but never read
-PreviousWorld:
+; FOR RENT
 	.dsb 1 ; $0405
 ; FOR RENT
 	.dsb 1 ; $0406
@@ -1341,7 +1331,6 @@ byte_RAM_53A:
 	.dsb 1 ; $053c
 byte_RAM_53D:
 	.dsb 1 ; $053d
-byte_RAM_53E:
 	.dsb 1 ; $053e
 CurrentLevelPages:
 	.dsb 1 ; $053f
@@ -1532,44 +1521,95 @@ Continues:
 	.dsb 1 ; $05c5
 
 ; FOR RENT
+zAudio:
+zMusicPlaying:
 	.dsb 1 ; $05c6
+zCurTrackVolumeEnvAndDuty:
 	.dsb 1 ; $05c7
+zCurTrackPitchSweep:
 	.dsb 1 ; $05c8
+zCurTrackRawPitch:
 	.dsb 1 ; $05c9
 	.dsb 1 ; $05ca
+zCurTrackTemp:
 	.dsb 1 ; $05cb
+zCurNoteDuration:
 	.dsb 1 ; $05cc
+zCurMusicByte:
 	.dsb 1 ; $05cd
+zCurChannel:
 	.dsb 1 ; $05ce
+zMusicID:
 	.dsb 1 ; $05cf
+zMusicBank:
 	.dsb 1 ; $05d0
+zMusicHeader:
 	.dsb 1 ; $05d1
 	.dsb 1 ; $05d2
+zNoiseSampleDelay:
 	.dsb 1 ; $05d3
+zDPCMBank:
 	.dsb 1 ; $05d4
+zDPCMOffset:
 	.dsb 1 ; $05d5
+zDPCMLength:
 	.dsb 1 ; $05d6
+zDPCMPitch:
 	.dsb 1 ; $05d7
+zMusicDrumSet:
 	.dsb 1 ; $05d8
+zSFXDrumSet:
 	.dsb 1 ; $05d9
+zLowHealthAlarm:
 	.dsb 1 ; $05da
+zMusicSilence:
 	.dsb 1 ; $05db
+zMusicSilenceCount:
 	.dsb 1 ; $05dc
+zMusicSilenceID:
 	.dsb 1 ; $05dd
+zMusicSilenceOffset:
 	.dsb 1 ; $05de
+zCryPitch:
 	.dsb 1 ; $05df
 	.dsb 1 ; $05e0
+zCryLength:
+zTempSpeed:
 	.dsb 1 ; $05e1
 	.dsb 1 ; $05e2
+zUnusedF9Flag:
 	.dsb 1 ; $05e3
+zSFXPriority:
 	.dsb 1 ; $05e4
+zTempPitch:
 	.dsb 1 ; $05e5
+zChannel1JumpCondition:
 	.dsb 1 ; $05e6
+zChannel2JumpCondition:
 	.dsb 1 ; $05e7
+zChannel3JumpCondition:
 	.dsb 1 ; $05e8
+zChannel4JumpCondition:
 	.dsb 1 ; $05e9
+zChannel5JumpCondition:
 	.dsb 1 ; $05ea
+zSFXDuration:
 	.dsb 1 ; $05eb
+zCurSFX:
+	.dsb 1 ; $05f6
+zCurSlideDistance:
+	.dsb 1 ; $05f7
+	.dsb 1 ; $05f8
+zCurSlideRawPitch:
+zTempRawPitch:
+	.dsb 1 ; $05f9
+	.dsb 1 ; $060b
+zAudioEnd:
+zMapMusic:
+	.dsb 1 ; $060f
+zDontPlayMusicOnReload:
+; FOR RENT
+	.dsb 1 ; $0610
 
 MusicPointerCurrentPart:
 	.dsb 1 ; $05ec
@@ -1591,22 +1631,13 @@ NextOctave:
 	.dsb 1 ; $05f4
 CurrentMusicNoiseStartOffset:
 	.dsb 1 ; $05f5
-; FOR RENT
-	.dsb 1 ; $05f6
-	.dsb 1 ; $05f7
-	.dsb 1 ; $05f8
-MusicSquare1Lo:
-	.dsb 1 ; $05f9 (unused; written to but not read)
 MusicDPCMNoteLength:
 	.dsb 1 ; $05fa
 MusicDPCMNoteStartLength:
 	.dsb 1 ; $05fb
 CurrentMusicDPCMStartOffset:
 	.dsb 1 ; $05fc
-IFDEF EXPAND_MUSIC
-MusicSquare2Lo: ; needs to be +$04 relative to MusicSquare1Lo
-ENDIF
-	.dsb 1 ; $05fd (unused; written to but not read)
+	.dsb 1 ; $05fd
 	.dsb 1 ; $05fe
 CurrentMusicDPCMOffset:
 	.dsb 1 ; $05ff
@@ -1687,19 +1718,12 @@ MusicPlaying1:
 	.dsb 1 ; $0609
 DPCMTimer:
 	.dsb 1 ; $060a
-; FOR RENT
-MusicSquare1NoteBend:
-	.dsb 1 ; $060b
 MusicSquare1NoteSweep:
 	.dsb 1 ; $060c
 SoundEffectPlaying2:
 	.dsb 1 ; $060d
 SoundEffectPlaying3:
 	.dsb 1 ; $060e
-MusicSquare2NoteBend:
-	.dsb 1 ; $060f
-; FOR RENT
-	.dsb 1 ; $0610
 SoundEffectTimer3:
 	.dsb 1 ; $0611
 MusicTempoSetting:
@@ -1769,19 +1793,11 @@ MaxLevelsCompleted:
 LevelObjectMode:
 	.dsb 1 ; $0633
 
-IFNDEF AREA_HEADER_TILESET
 ; FOR RENT
 	.dsb 1 ; $0634
 CurrentWorld:
 CurrentWorldTileset:
 	.dsb 1 ; $0635
-
-ELSE
-CurrentWorldTileset:
-	.dsb 1 ; $0634
-CurrentWorld:
-	.dsb 1 ; $0635
-ENDIF
 
 ; gets set to $A5 in DoCharacterSelectMenu to skip the bank switch
 CharacterSelectBankSwitch:
@@ -2036,7 +2052,7 @@ ResetCHRLatch:
 ; Not sure if anything else uses this area yet
 SubAreaTileLayout:
 	.dsb $100   ; $0700-$07FF
-
+.ende
 
 ;
 ; PPU registers
@@ -2089,11 +2105,6 @@ SND_CHN = $4015
 JOY1 = $4016
 JOY2 = $4017
 
-; Leftover code in prg-e-f references this
-; (otherwise unused, since, well, not FDS)
-FDS_WAVETABLE_VOL = $4080
-
-
 ;
 ; Expansion chip stuff for MMC5 support
 ; $5000-$5015
@@ -2141,9 +2152,10 @@ MMC5_CHRBankSwitch10 = $5129
 MMC5_CHRBankSwitch11 = $512a
 MMC5_CHRBankSwitch12 = $512b
 MMC5_CHRBankSwitchUpper = $5130
-
 MMC5_IRQScanlineCompare = $5203
 MMC5_IRQStatus = $5204
+MMC5_Multiplier1 = $5205
+MMC5_Multiplier2 = $5206
 
 
 ;
@@ -2154,6 +2166,40 @@ MMC5_IRQStatus = $5204
 ;
 
 DecodedLevelData = $6000
+
+.enum $6970
+iChannel1:
+	.dsb 50
+iChannel2:
+	.dsb 50
+iChannel3:
+	.dsb 50
+iChannel4:
+	.dsb 50
+iChannel5:
+	.dsb 50
+iChannel6:
+	.dsb 50
+iChannel7:
+	.dsb 50
+iChannel8:
+	.dsb 50
+iChannel9:
+	.dsb 50
+iChannel10:
+	.dsb 50
+iChannelsEnd:
+wStatusFlags:
+	.dsb 1
+wMapGroup:
+	.dsb 1
+wMapNumber:
+	.dsb 1
+iHold1:
+	.dsb 1
+iHold2:
+	.dsb 1
+.ende
 
 ObjectCollisionHitboxLeft_RAM = $7100
 ObjectCollisionHitboxTop_RAM = $7114
@@ -2197,30 +2243,4 @@ RawJarData = $7a00
 
 RawEnemyDataAddr = $7b00
 
-;
-; Extra enhancement support for 2P debug mode controls
-; Spread around to some 'for rent' addresses
-;
-IFDEF CONTROLLER_2_DEBUG
-	UpdateJoypadsTemp = $00c6
-	CarryYOffsetsRAM = $7e00
-	StatOffsetsRAM = $7e10
-	ChangeCharacterTimer = $7e80
-	ChangeCharacterPoofTimer = $7e81
-	CreateObjectType = $7e82
-	CreateObjectAttributes = $7e83
-ENDIF
-
 ItemCarryYOffsetsRAM = $7f00
-
-MMC3_BankSelect = $8000
-MMC3_BankData = $8001
-MMC3_Mirroring = $a000
-MMC3_PRGRamProtect = $a001
-MMC3_IRQLatch = $c000
-MMC3_IRQReload = $c001
-MMC3_IRQDisable = $e000
-MMC3_IRQEnable = $e001
-
-FME7_Command = $8000
-FME7_Parameter = $a000

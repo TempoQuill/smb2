@@ -47,12 +47,6 @@ include "src/levels/level-data-pointers.asm"
 include "src/levels/level-data.asm"
 
 
-; Pad out any remaining space
-; @TODO Verify that this is OK if unused space is reclaimed
-LevelData_Unused:
-unusedSpace $A500,$FF
-
-
 ; Pointers to enemy data
 include "src/levels/enemy-data-pointers.asm"
 

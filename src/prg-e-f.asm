@@ -22,7 +22,9 @@
 ;
 
 ; Include DPCM samples
-.include "src/music/dpcm-samples.asm"
+.incbin "src/music/dpcm.bin"
+
+.align $2000, $55
 
 ; PPU update buffers used to update the screen
 ScreenUpdateBufferPointers:
@@ -47,7 +49,7 @@ ScreenUpdateBufferPointers:
 	.dw PPUBuffer_WarpToWorld
 	.dw PPUBuffer_ContinueRetryBullets
 	.dw PPUBuffer_EndOfLevelDoor
-	.dw PPUBuffer_TitleCardLeftover
+	.dw PPUBuffer_EndOfLevelDoor
 	.dw PPUBuffer_PauseExtraLife
 	.dw PPUBuffer_BonusChanceLayout
 
@@ -436,13 +438,6 @@ EnableNMI_PauseTitleCard:
 ; - `Y`: CurrentLevel (not actually used)
 ;
 DisplayLevelTitleCardText:
-	; Level number (unused)
-	; In Doki Doki Panic, this was displayed as a page number, keeping with
-	; the storybook motif.
-	INY
-	TYA
-	JSR GetTwoDigitNumberTiles
-
 	; World number
 	INX
 	TXA
@@ -655,12 +650,15 @@ loc_BANKF_E2B2:
 
 	JSR DisableNMI
 
+IFNDEF GS_MUSIC
 	LDA #Music1_CharacterSelect
 	STA MusicQueue1
-	LDA CurrentCharacter
-	STA PreviousCharacter
-	LDA CurrentWorld
-	STA PreviousWorld
+ELSE
+	LDY #0
+	JSR PlayMusic
+	LDY #MUSIC_MAIN_MENU
+	JSR PlayMusic
+ENDIF
 
 	LDY #$3F
 loc_BANKF_E2CA:
@@ -698,8 +696,15 @@ CharacterSelect_ChangeCharacter:
 	BEQ loc_BANKF_E2FE
 
 	DEC CurrentCharacter
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
 	STA SoundEffectQueue1
+ELSE
+	STY StackArea + 2
+	LDY #SFX_READ_TEXT
+	JSR PlaySFX
+	LDY StackArea + 2
+ENDIF
 
 loc_BANKF_E2FE:
 	LDA Player1JoypadPress
@@ -707,8 +712,15 @@ loc_BANKF_E2FE:
 	BEQ loc_BANKF_E30B
 
 	INC CurrentCharacter
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
 	STA SoundEffectQueue1
+ELSE
+	STY StackArea + 2
+	LDY #SFX_READ_TEXT
+	JSR PlaySFX
+	LDY StackArea + 2
+ENDIF
 
 loc_BANKF_E30B:
 	LDA CurrentCharacter
@@ -797,8 +809,15 @@ CharacterSelectMenuLoop:
 ; ---------------------------------------------------------------------------
 
 loc_BANKF_E3AE:
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
 	STA SoundEffectQueue1
+ELSE
+	STY StackArea + 2
+	LDY #SFX_HIT_END_OF_EXP_BAR
+	JSR PlaySFX
+	LDY StackArea + 2
+ENDIF
 	LDX CurrentWorld
 	LDY CurrentLevel
 	JSR DisplayLevelTitleCardText
@@ -843,9 +862,15 @@ loc_BANKF_E3EC:
 	DEC byte_RAM_10
 	BPL loc_BANKF_E3EC
 
+IFNDEF GS_MUSIC
 	LDA #Music2_StopMusic
 	STA MusicQueue2
 	RTS
+ELSE
+	LDY #0
+	JMP PlayMusic
+ENDIF
+
 
 
 ;
@@ -923,10 +948,6 @@ StartLevel_SetPPUCtrlMirror:
 	JSR LoadCurrentArea
 
 	JSR LoadCurrentPalette
-
-IFDEF AREA_HEADER_TILESET
-	JSR LoadWorldCHRBanks
-ENDIF
 
 	JSR HideAllSprites
 
@@ -1059,11 +1080,7 @@ VerticalLevel_CheckTransition:
 ; Pauses the game
 ;
 ShowPauseScreen:
-IFNDEF RESPAWN_INSTEAD_OF_DEATH
 	JSR PauseScreen_ExtraLife
-ELSE
-	JMP PauseRespawn
-ENDIF
 
 SetStack100Pause:
 	; used when running sound queues
@@ -1108,11 +1125,6 @@ PauseScreenExitCheck:
 ;
 HidePauseScreen:
 	JSR WaitForNMI_TurnOffPPU
-
-IFDEF RESET_CHR_LATCH
-	LDA #$00
-	STA ResetCHRLatch
-ENDIF
 
 	JSR LoadWorldCHRBanks
 
@@ -1197,8 +1209,18 @@ InitializeJar:
 
 	JSR ClearSubAreaTileLayout
 
+IFNDEF GS_MUSIC
 	LDA #Music1_Inside
 	STA MusicQueue1
+ENDIF
+IFDEF GS_MUSIC
+	STY StackArea + 2
+	LDY #0
+	JSR PlayMusic
+	LDY #MUSIC_RUINS_OF_ALPH_INTERIOR
+	JSR PlayMusic
+	LDY StackArea + 2
+ENDIF
 	LDA #$01
 	STA CurrentMusicIndex
 	JMP loc_BANKF_E5E1
@@ -1207,8 +1229,10 @@ InitializeJar:
 InitializeSubspace:
 	JSR GenerateSubspaceArea
 
+IFNDEF GS_MUSIC
 	LDA #Music1_Subspace
 	STA MusicQueue1
+ENDIF
 	LDA #$04
 	STA CurrentMusicIndex
 
@@ -1282,7 +1306,11 @@ loc_BANKF_E627:
 	BNE loc_BANKF_E64C
 
 	LDA LevelMusicIndexes, Y
+IFNDEF GS_MUSIC
 	STA MusicQueue1
+ELSE
+	JSR GetLevelMusic
+ENDIF
 
 loc_BANKF_E64C:
 	LDA #PRGBank_0_1
@@ -1338,11 +1366,7 @@ ShowCardAfterTransition:
 	JSR PauseScreen_Card
 
 AfterDeathJump:
-IFNDEF CHARACTER_SELECT_AFTER_DEATH
-	JMP StartLevelAfterTitleCard
-ELSE
 	JMP CharacterSelectMenu
-ENDIF
 
 
 ResetAreaAndProcessGameMode_NotTitleCard:
@@ -1364,8 +1388,13 @@ ResetAreaAndProcessGameMode_NotTitleCard:
 
 DoGameOverStuff:
 	STY PlayerCurrentSize
+IFNDEF GS_MUSIC
 	LDA #Music2_GameOver
 	STA MusicQueue2
+ELSE
+	LDY #SFX_QUIT_SLOTS
+	JSR PlaySFX
+ENDIF
 	JSR WaitForNMI_TurnOffPPU
 
 	JSR ChangeTitleCardCHR
@@ -1472,7 +1501,6 @@ ResetAreaAndProcessGameMode_NotGameOver:
 DoWorldWarp:
 	; Show warp screen
 	LDY CurrentWorld
-	STY PreviousWorld
 	LDA WarpDestinations, Y
 	STA CurrentWorld
 	TAY
@@ -1499,8 +1527,17 @@ DoWorldWarp:
 
 	LDA #ScreenUpdateBuffer_WarpToWorld
 	STA ScreenUpdateIndex
+IFNDEF GS_MUSIC
 	LDA #Music2_SlotWarpFanfare
 	STA MusicQueue2
+ELSE
+	STY StackArea + 2
+	LDY #0
+	JSR PlayMusic
+	LDY #SFX_GET_EGG
+	JSR PlaySFX
+	LDY StackArea + 2
+ENDIF
 	JSR Delay160Frames
 
 	JSR InitializeSomeLevelStuff
@@ -1511,8 +1548,12 @@ DoWorldWarp:
 
 EndOfLevel:
 	; Stop the music
+IFNDEF GS_MUSIC
 	LDA #Music2_StopMusic ; Stop music
 	STA MusicQueue2
+ELSE
+	JSR InitSound
+ENDIF
 
 	; Increase current characters "contribution" counter
 	LDX CurrentCharacter
@@ -1535,24 +1576,14 @@ EndOfRegularLevel:
 	STY PlayerCurrentSize
 
 EndOfLevelSlotMachine:
-IFDEF DISABLE_BONUS_CHANCE
-	JMP GoToNextLevel
-ELSE
 	JSR WaitForNMI_TurnOffPPU
-ENDIF
 
 	JSR ClearNametablesAndSprites
 
-IFDEF REV_A
 	JSR EnableNMI
 	JSR WaitForNMI
-ENDIF
 
 	JSR LoadBonusChanceCHRBanks
-
-IFNDEF BONUS_CHANCE_RAM_CLEANUP
-	JSR CopyUnusedCoinSpriteToSpriteArea
-ENDIF
 
 	LDA #PRGBank_A_B
 	JSR ChangeMappedPRGBank
@@ -1573,8 +1604,13 @@ ENDIF
 
 	JSR sub_BANKF_EA33
 
+IFNDEF GS_MUSIC
 	LDA #Music2_SlotWarpFanfare
 	STA MusicQueue2
+ELSE
+	LDY #0
+	JSR PlayMusic
+ENDIF
 	LDA SlotMachineCoins
 	BNE loc_BANKF_E7F2
 
@@ -1583,11 +1619,18 @@ ENDIF
 ; ---------------------------------------------------------------------------
 
 loc_BANKF_E7F2:
+IFDEF GS_MUSIC
+	LDY #MUSIC_GAME_CORNER
+	JSR PlayMusic
+ENDIF
 	LDA #$03
 	STA ObjectXLo + 3
 	STA ObjectXLo + 4
 	STA ObjectXLo + 5
 	JSR WaitForNMI_TurnOnPPU
+IFDEF GS_MUSIC
+	JSR Delay80Frames
+ENDIF
 
 loc_BANKF_E7FD:
 	LDA SlotMachineCoins
@@ -1668,8 +1711,10 @@ DoSlotMachineSpinnyShit:
 	JSR WaitForNMI ; $2C-$2E: Reel change timer
 	; $2F-$31: Current reel icon
 
+IFNDEF GS_MUSIC
 	LDA #SoundEffect2_Climbing ; Play "reel sound" sound effect
 	STA SoundEffectQueue2
+ENDIF
 	JSR sub_BANKF_EAC2
 
 	JSR sub_BANKF_EADC
@@ -1735,8 +1780,14 @@ loc_BANKF_E8D3:
 
 	ORA #$D0
 	STA PPUBuffer_Player1UpText + 11 ; Update number of lives won
+IFNDEF GS_MUSIC
 	LDA #Music2_CrystalGetFanfare ; Play winner jingle
 	STA MusicQueue2
+ELSE
+	LDA SlotSoundEffects, Y
+	TAY
+	JSR PlaySFX
+ENDIF
 	LDA #$A0
 	STA byte_RAM_6
 	JSR WaitForNMI
@@ -1751,18 +1802,34 @@ loc_BANKF_E8ED:
 	LDA BonusChanceUpdateBuffer_PLAYER_1UP, Y
 	STA ScreenUpdateIndex
 	DEC byte_RAM_6
+IFNDEF GS_MUSIC
 	BNE loc_BANKF_E8ED
 
 	BEQ loc_BANKF_E90C
+ELSE
+	JSR CheckSFX
+	BCS loc_BANKF_E8ED
+
+	BCC loc_BANKF_E90C
+ENDIF
 
 SlotMachineLoseFanfare:
+IFNDEF GS_MUSIC
 	LDA #Music2_DeathJingle
 	STA MusicQueue2
+ELSE
+	LDY #SFX_DEX_FANFARE_LESS_THAN_20
+	JSR PlaySFX
+ENDIF
 	JSR WaitForNMI
 
 	JSR sub_BANKF_EA68
 
+IFNDEF GS_MUSIC
 	JSR Delay160Frames
+ELSE
+	JSR WaitSFX
+ENDIF
 
 loc_BANKF_E90C:
 	LDA #ScreenUpdateBuffer_RAM_EraseBonusMessageTextUnused
@@ -1771,6 +1838,13 @@ loc_BANKF_E90C:
 
 	JMP loc_BANKF_E7FD
 
+SlotSoundEffects:
+	.db SFX_DEX_FANFARE_LESS_THAN_20
+	.db SFX_3RD_PLACE
+	.db SFX_2ND_PLACE
+	.db SFX_2ND_PLACE
+	.db SFX_2ND_PLACE
+	.db SFX_1ST_PLACE
 
 ;
 ; Used for flashing text in Bonus Chance
@@ -1793,15 +1867,17 @@ SlotMachineTextFlashIndex:
 
 
 NoCoinsForSlotMachine:
+IFNDEF GS_MUSIC
 	JSR Delay80Frames
-
-IFDEF EXPAND_MUSIC
-	; Need $08 to loop correctly, but want to preserve addresses
-	JSR SlotMachineNoCoinsJingle
-	LDA #$08 ; Needed to loop correctly
-ELSE
 	LDA #Music2_DeathJingle
 	STA MusicQueue2
+ELSE
+	LDY #SFX_CHOOSE_A_CARD
+	JSR PlaySFX
+	JSR WaitSFX
+	LDY #SFX_DEX_FANFARE_LESS_THAN_20
+	JSR PlaySFX
+	LDA #Music2_DeathJingle
 ENDIF
 
 	STA byte_RAM_6
@@ -1848,12 +1924,7 @@ DelayFrames_Loop:
 EndingSceneRoutine:
 	JSR SetScrollXYTo0
 
-	LDA #$80
-	; FDS leftover; $4080 is an old sound register
-	; The prototype had two writes to this address!
-	; It looks like they missed this one, though.
-	STA FDS_WAVETABLE_VOL
-	ASL A
+	LDA #0
 	STA SoundEffectPlaying1
 	LDA #PRGBank_0_1
 	JSR ChangeMappedPRGBank
@@ -2133,8 +2204,15 @@ locret_BANKF_EAD1:
 loc_BANKF_EAD2:
 	LDA #$00
 	STA ObjectXLo, X
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
 	STA SoundEffectQueue1
+ELSE
+	STY StackArea + 2
+	LDY #SFX_STOP_SLOT
+	JSR PlaySFX
+	LDY StackArea + 2
+ENDIF
 	RTS
 
 ; End of function sub_BANKF_EAC2
@@ -2216,23 +2294,6 @@ loc_BANKF_EB1F:
 	RTS
 
 ; End of function sub_BANKF_EAF6
-
-IFNDEF BONUS_CHANCE_RAM_CLEANUP
-;
-; Copies the unused coin sprite from memory into the sprite DMA area at $200
-;
-CopyUnusedCoinSpriteToSpriteArea:
-	LDY #$00
-
-CopyUnusedCoinSpriteToSpriteArea_Loop:
-	LDA BonusChanceUnusedCoinSprite_RAM, Y
-	STA SpriteDMAArea + $28, Y
-	INY
-	CPY #$08 ; Four bytes per sprite * 2 sprites = 8 bytes
-	BCC CopyUnusedCoinSpriteToSpriteArea_Loop
-
-	RTS
-ENDIF
 
 ;
 ; NMI logic for during a transition
@@ -2372,9 +2433,9 @@ NMI_Gameplay:
 	STA PPUCTRL
 
 NMI_DrawBackgroundTilesOuterLoop:
-	LDA_abs DrawBackgroundTilesPPUAddrHi
+	LDA DrawBackgroundTilesPPUAddrHi
 	STA PPUADDR
-	LDA_abs DrawBackgroundTilesPPUAddrLo
+	LDA DrawBackgroundTilesPPUAddrLo
 	STA PPUADDR
 
 NMI_DrawBackgroundTilesInnerLoop:
@@ -2385,7 +2446,7 @@ NMI_DrawBackgroundTilesInnerLoop:
 	BNE NMI_DrawBackgroundTilesInnerLoop
 
 	LDX #$1E
-	INC_abs DrawBackgroundTilesPPUAddrLo
+	INC DrawBackgroundTilesPPUAddrLo
 
 	CPY #$3C
 	BNE NMI_DrawBackgroundTilesOuterLoop
@@ -2468,11 +2529,16 @@ NMI_ResetScreenUpdateIndex:
 	DEC NMIWaitFlag
 
 NMI_DoSoundProcessing:
-IFNDEF DEBUG
 	JSR DoSoundProcessing
-ELSE
-	JMP DoSoundProcessingAndCheckDebug
-ENDIF
+	LDA iHold1
+	ORA iHold2
+	BEQ NMI_Exit
+
+	LDA iHold1
+	BEQ NMI_Hold
+	DEC iHold2
+NMI_Hold:
+	DEC iHold1
 
 NMI_Exit:
 	PLA
@@ -2505,6 +2571,7 @@ ResetPPUAddress:
 
 
 DoSoundProcessing:
+IFNDEF GS_MUSIC
 	LDA #PRGBank_4_5
 	JSR ChangeMappedPRGBankWithoutSaving
 
@@ -2512,6 +2579,9 @@ DoSoundProcessing:
 
 	LDA MMC3PRGBankTemp
 	JMP ChangeMappedPRGBank
+ELSE
+	JMP UpdateSound
+ENDIF
 
 
 ClearNametablesAndSprites:
@@ -2731,64 +2801,7 @@ UpdatePPUFBWO_CopySingleTileSkip:
 	JMP UpdatePPUFromBufferWithOptions
 
 
-IF INES_MAPPER == MAPPER_FME7
-RESET_FME7:
-	LDA #$08 ; PRG bank 0
-	STA FME7_Command
-	LDA #%11000000
-	STA FME7_Parameter
-
-	LDA #$09 ; PRG bank 1
-	STA FME7_Command
-	LDA #$00 ; ROM bank 0
-	STA FME7_Parameter
-
-	LDA #$0A ; PRG bank 2
-	STA FME7_Command
-	LDA #$01 ; ROM bank 1
-	STA FME7_Parameter
-
-	LDA #$0B ; PRG bank 3
-	STA FME7_Command
-	LDA #$0E ; ROM bank E
-	STA FME7_Parameter
-
-	JMP RESET
-
-
-ChangeCHRBanks_FME7:
-	LDY BackgroundCHR1
-	LDA #$04
-	STA FME7_Command
-	STY FME7_Parameter
-
-	INY
-	LDA #$05
-	STA FME7_Command
-	STY FME7_Parameter
-
-	LDY BackgroundCHR2
-	LDA #$06
-	STA FME7_Command
-	STY FME7_Parameter
-
-	INY
-	LDA #$07
-	STA FME7_Command
-	STY FME7_Parameter
-
-	LDY #$03
-ChangeCHRBanks_FME7_Loop:
-	TYA
-	STA FME7_Command
-	LDA SpriteCHR1, Y
-	STA FME7_Parameter
-	DEY
-	BPL ChangeCHRBanks_FME7_Loop
-
-	RTS
-
-ELSEIF INES_MAPPER == MAPPER_MMC5
+IF INES_MAPPER == MAPPER_MMC5
 RESET_MMC5:
 	; Set PRG mode 3 and CHR mode 3
 	LDA #$03
@@ -2822,11 +2835,11 @@ RESET_MMC5:
 	STA MMC5_PRGBankSwitch3 ; $A000-$BFFF
 
 	; PRG bank 2
-	LDA #$8E ; ROM bank E
+	LDA #$80 | PRGBank_FINAL_1 ; ROM bank E
 	STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
 
 	; PRG bank 3
-	LDA #$8F ; ROM bank F
+	LDA #$80 | PRGBank_FINAL_2 ; ROM bank F
 	STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
 
 	JMP RESET
@@ -2867,17 +2880,6 @@ ChangeCHRBanks_MMC5:
 
 	RTS
 ENDIF
-
-IFDEF EXPAND_MUSIC
-SlotMachineNoCoinsJingle:
-	LDA #Music2_DeathJingle
-	STA MusicQueue2
-	RTS
-ENDIF
-
-; Unused space in the original ($ED4D - $EFFF)
-unusedSpace $F000, $FF
-
 
 ;
 ; ## Tile collision bounding boxes
@@ -3079,11 +3081,71 @@ NextSpriteFlickerSlot_Exit:
 
 
 LevelMusicIndexes:
+IFNDEF GS_MUSIC
 	.db Music1_Overworld
 	.db Music1_Inside ; 1 ; Music1 indexes.
 	.db Music1_Boss ; 2
 	.db Music1_Wart ; 3
 	.db Music1_Subspace ; 4
+ELSE
+	.db OVERWORLD_MUSIC
+	.db INDOOR_MUSIC
+	.db BOSS_MUSIC
+	.db WART_MUSIC
+	.db MUSIC_MT_MOON_SQUARE
+ENDIF
+
+OverworldMusicdIndexex:
+	.db MUSIC_AZALEA_TOWN
+	.db MUSIC_ROUTE_2
+	.db MUSIC_LAKE_OF_RAGE
+	.db MUSIC_ECRUTEAK_CITY
+	.db MUSIC_VIOLET_CITY
+	.db MUSIC_ROUTE_2
+	.db MUSIC_ROUTE_37
+
+WartMusicIndexes:
+	.db MUSIC_UNION_CAVE
+	.db MUSIC_SPROUT_TOWER
+	.db MUSIC_MT_MOON
+	.db MUSIC_UNION_CAVE
+	.db MUSIC_DARK_CAVE
+	.db MUSIC_DRAGONS_DEN
+	.db MUSIC_CHAMPION_BATTLE
+
+BsosMusicIndexes:
+	.db MUSIC_JOHTO_TRAINER_BATTLE
+	.db MUSIC_JOHTO_TRAINER_BATTLE
+	.db MUSIC_JOHTO_GYM_LEADER_BATTLE
+
+InsideMusicIndexes:
+	.db MUSIC_UNION_CAVE ; world 1
+	.db MUSIC_UNION_CAVE
+	.db MUSIC_LIGHTHOUSE
+
+	.db MUSIC_SPROUT_TOWER ; world 2
+	.db MUSIC_SPROUT_TOWER
+	.db MUSIC_LIGHTHOUSE
+
+	.db MUSIC_MT_MOON ; world 3
+	.db MUSIC_MT_MOON
+	.db MUSIC_LIGHTHOUSE
+
+	.db MUSIC_LIGHTHOUSE ; world 4
+	.db MUSIC_LIGHTHOUSE
+	.db MUSIC_LIGHTHOUSE
+
+	.db MUSIC_DARK_CAVE ; world 5
+	.db MUSIC_DARK_CAVE
+	.db MUSIC_LIGHTHOUSE
+
+	.db MUSIC_DRAGONS_DEN ; world 6
+	.db MUSIC_DRAGONS_DEN
+	.db MUSIC_LIGHTHOUSE
+
+	.db MUSIC_INDIGO_PLATEAU ; world 7
+	.db MUSIC_INDIGO_PLATEAU
+	.db MUSIC_INDIGO_PLATEAU
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -3095,9 +3157,15 @@ sub_BANKF_F0F9:
 	BNE loc_BANKF_F11B
 
 	; boss clear fanfare locks player movement
+IFNDEF GS_MUSIC
 	LDA MusicPlaying2
 	CMP #Music2_BossClearFanfare
 	BEQ loc_BANKF_F115
+ELSE
+	LDA iHold1
+	ORA iHold2
+	BNE loc_BANKF_F115
+ENDIF
 
 	LDA PlayerLock
 	BNE loc_BANKF_F115
@@ -3160,10 +3228,6 @@ RunFrame_Common:
 
 	JSR AreaSecondaryRoutine
 
-IFDEF CONTROLLER_2_DEBUG
-	JSR AreaDebugRoutine
-ENDIF
-
 	JSR AnimateCHRRoutine
 
 	JSR SetAreaStartPage
@@ -3195,7 +3259,11 @@ DecrementPlayerStateTimers_Zero:
 
 	LDY CurrentMusicIndex
 	LDA LevelMusicIndexes, Y
+IFNDEF GS_MUSIC
 	STA MusicQueue1
+ELSE
+	JMP GetLevelMusic
+ENDIF
 
 RunFrame_Exit:
 	RTS
@@ -3331,12 +3399,6 @@ ClimbSpeedDown:
 	.db $20
 ClimbSpeedUp:
 	.db $F0
-; Bug: The climb speed index is determined by checking the up/down flags in
-; Player1JoypadHeld. If both are enabled, the index it out of bounds and uses
-; the LDA ($A5) below, which zips the player up the vine!
-IFDEF FIX_CLIMB_ZIP
-	.db $00
-ENDIF
 
 ;
 ; Calculates the player's position onscreen.
@@ -3573,67 +3635,11 @@ CharacterTiles_PrincessJumpBody:
 DamageInvulnBlinkFrames:
 	.db $01, $01, $01, $02, $02, $04, $04, $04
 
-IFDEF CONTROLLER_2_DEBUG
-ChangePlayerPoofTiles:
-	.db $5E
-	.db $3A
-	.db $3A
-	.db $3A
-	.db $38
-	.db $38
-	.db $38
-	.db $36
-	.db $34
-ENDIF
-
 ;
 ; Renders the player sprite
 ;
 RenderPlayer:
-IFDEF CONTROLLER_2_DEBUG
-	LDA ChangeCharacterPoofTimer
-	BEQ RenderPlayer_AfterChangeCharacterPoof
-
-	DEC ChangeCharacterPoofTimer
-
-	; tile
-	LDY ChangeCharacterPoofTimer
-	LDA ChangePlayerPoofTiles, Y
-	STA SpriteDMAArea + $01
-	STA SpriteDMAArea + $05
-	STA SpriteDMAArea + $09
-	STA SpriteDMAArea + $0D
-
-	; attributes
-	LDA #ObjAttrib_Palette1
-	STA SpriteDMAArea + $02
-	STA SpriteDMAArea + $0A
-	LDA #ObjAttrib_Palette1 | ObjAttrib_16x32
-	STA SpriteDMAArea + $06
-	STA SpriteDMAArea + $0E
-
-	; y-position
-	LDA PlayerScreenYLo
-	STA SpriteDMAArea + $00
-	STA SpriteDMAArea + $04
-	CLC
-	ADC #$10
-	STA SpriteDMAArea + $08
-	STA SpriteDMAArea + $0C
-
-	; x-position
-	LDA PlayerScreenX
-	STA SpriteDMAArea + $03
-	STA SpriteDMAArea + $0B
-	CLC
-	ADC #$08
-	STA SpriteDMAArea + $07
-	STA SpriteDMAArea + $0F
-
-RenderPlayer_AfterChangeCharacterPoof:
-ENDIF
-
-	LDY_abs PlayerState
+	LDY PlayerState
 	CPY #PlayerState_ChangingSize
 	BEQ loc_BANKF_F337
 
@@ -4371,8 +4377,6 @@ EnemyPlayerCollisionTable:
 	.db $00 ; $45 Enemy_Starman
 	.db $02 ; $46 Enemy_Stopwatch
 
-; @TODO: use flag
-; IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
 ;
 ; This table determines the "solidness" of tiles.
 ;
@@ -4403,549 +4407,6 @@ TileSolidnessTable:
 	.db $98
 	.db $D5
 
-IFDEF ENABLE_TILE_ATTRIBUTES_TABLE
-; ELSE
-;
-; This table determines the collision properties of a tile
-;
-; * bit 7: whether bottom is solid to "background interactive" enemies
-; * bit 6: whether top is solid to "background interactive" enemies
-; * bit 5: whether right side is solid to "background interactive" enemies
-; * bit 4: whether left side is solid to "background interactive" enemies
-; * bit 3: whether bottom is solid
-; * bit 2: whether top is solid
-; * bit 1: whether right side is solid
-; * bit 0: whether left side is solid
-;
-TileCollisionAttributesTable:
-	.db %00000000 ; $00
-	.db %11110000 ; $01
-	.db %11110000 ; $02
-	.db %11110000 ; $03
-	.db %11110000 ; $04
-	.db %11110000 ; $05
-	.db %11110000 ; $06
-	.db %11110000 ; $07
-	.db %11110000 ; $08
-	.db %11110000 ; $09
-	.db %11110000 ; $0A
-	.db %11110000 ; $0B
-	.db %11110000 ; $0C
-	.db %11110000 ; $0D
-	.db %11110000 ; $0E
-	.db %11110000 ; $0F
-	.db %11110000 ; $10
-	.db %11110000 ; $11
-	.db %00000100 ; $12
-	.db %00000100 ; $13
-	.db %00000100 ; $14
-	.db %00000100 ; $15
-	.db %00000100 ; $16
-	.db %00000100 ; $17
-	.db %00001111 ; $18
-	.db %00001111 ; $19
-	.db %10001111 ; $1A
-	.db %00001111 ; $1B
-	.db %00001111 ; $1C
-	.db %00001111 ; $1D
-	.db %00001111 ; $1E
-	.db %00001111 ; $1F
-	.db %00001111 ; $20
-	.db %00001111 ; $21
-	.db %00001111 ; $22
-	.db %00001111 ; $23
-	.db %00001111 ; $24
-	.db %00001111 ; $25
-	.db %00001111 ; $26
-	.db %00001111 ; $27
-	.db %00001111 ; $28
-	.db %00001111 ; $29
-	.db %00001111 ; $2A
-	.db %00001111 ; $2B
-	.db %00001111 ; $2C
-	.db %00001111 ; $2D
-	.db %00001111 ; $2E
-	.db %00001111 ; $2F
-	.db %00001111 ; $30
-	.db %00001111 ; $31
-	.db %00001111 ; $32
-	.db %00001111 ; $33
-	.db %00001111 ; $34
-	.db %00001111 ; $35
-	.db %00001111 ; $36
-	.db %00001111 ; $37
-	.db %00001111 ; $38
-	.db %00001111 ; $39
-	.db %00001111 ; $3A
-	.db %00001111 ; $3B
-	.db %00001111 ; $3C
-	.db %00001111 ; $3D
-	.db %00001111 ; $3E
-	.db %00001111 ; $3F
-	.db %00000000 ; $40
-	.db %00000000 ; $41
-	.db %00000000 ; $42
-	.db %11110000 ; $43
-	.db %11110000 ; $44
-	.db %11110000 ; $45
-	.db %11110000 ; $46
-	.db %11110000 ; $47
-	.db %11110000 ; $48
-	.db %11110000 ; $49
-	.db %11110000 ; $4A
-	.db %11110000 ; $4B
-	.db %11110000 ; $4C
-	.db %11110000 ; $4D
-	.db %11110000 ; $4E
-	.db %11110000 ; $4F
-	.db %11110000 ; $50
-	.db %11110000 ; $51
-	.db %11110000 ; $52
-	.db %11110000 ; $53
-	.db %11110000 ; $54
-	.db %11110000 ; $55
-	.db %11110000 ; $56
-	.db %11110000 ; $57
-	.db %11110000 ; $58
-	.db %11110000 ; $59
-	.db %11110000 ; $5A
-	.db %11110000 ; $5B
-	.db %11110000 ; $5C
-	.db %11110000 ; $5D
-	.db %11110000 ; $5E
-	.db %11110000 ; $5F
-	.db %00000100 ; $60
-	.db %00000100 ; $61
-	.db %00000100 ; $62
-	.db %00000100 ; $63
-	.db %00000100 ; $64
-	.db %00000100 ; $65
-	.db %00000100 ; $66
-	.db %00000100 ; $67
-	.db %00000100 ; $68
-	.db %00001111 ; $69
-	.db %00001111 ; $6A
-	.db %00001111 ; $6B
-	.db %00001111 ; $6C
-	.db %00001111 ; $6D
-	.db %00001111 ; $6E
-	.db %00001111 ; $6F
-	.db %00001111 ; $70
-	.db %00001111 ; $71
-	.db %00001111 ; $72
-	.db %00001111 ; $73
-	.db %00001111 ; $74
-	.db %00001111 ; $75
-	.db %00001111 ; $76
-	.db %00001111 ; $77
-	.db %00001111 ; $78
-	.db %00001111 ; $79
-	.db %00001111 ; $7A
-	.db %00001111 ; $7B
-	.db %00001111 ; $7C
-	.db %00001111 ; $7D
-	.db %00001111 ; $7E
-	.db %00001111 ; $7F
-	.db %11110000 ; $80
-	.db %11110000 ; $81
-	.db %11110000 ; $82
-	.db %11110000 ; $83
-	.db %11110000 ; $84
-	.db %11110000 ; $85
-	.db %11110000 ; $86
-	.db %11110000 ; $87
-	.db %11110000 ; $88
-	.db %11110000 ; $89
-	.db %11110000 ; $8A
-	.db %11110000 ; $8B
-	.db %11110000 ; $8C
-	.db %11110000 ; $8D
-	.db %11110000 ; $8E
-	.db %11110000 ; $8F
-	.db %11110000 ; $90
-	.db %00000100 ; $91
-	.db %00000100 ; $92
-	.db %00000100 ; $93
-	.db %00000100 ; $94
-	.db %00000100 ; $95
-	.db %00000100 ; $96
-	.db %00000100 ; $97
-	.db %00001111 ; $98
-	.db %00001111 ; $99
-	.db %00001111 ; $9A
-	.db %00001111 ; $9B
-	.db %00001111 ; $9C
-	.db %00001111 ; $9D
-	.db %00001111 ; $9E
-	.db %00001111 ; $9F
-	.db %00001111 ; $A0
-	.db %00001111 ; $A1
-	.db %00001111 ; $A2
-	.db %00001111 ; $A3
-	.db %00001111 ; $A4
-	.db %00001111 ; $A5
-	.db %00001111 ; $A6
-	.db %00001111 ; $A7
-	.db %00001111 ; $A8
-	.db %00001111 ; $A9
-	.db %00001111 ; $AA
-	.db %00001111 ; $AB
-	.db %00001111 ; $AC
-	.db %00001111 ; $AD
-	.db %00001111 ; $AE
-	.db %00001111 ; $AF
-	.db %00001111 ; $B0
-	.db %00001111 ; $B1
-	.db %00001111 ; $B2
-	.db %00001111 ; $B3
-	.db %00001111 ; $B4
-	.db %00001111 ; $B5
-	.db %00001111 ; $B6
-	.db %00001111 ; $B7
-	.db %00001111 ; $B8
-	.db %00001111 ; $B9
-	.db %00001111 ; $BA
-	.db %00001111 ; $BB
-	.db %00001111 ; $BC
-	.db %00001111 ; $BD
-	.db %00001111 ; $BE
-	.db %00001111 ; $BF
-	.db %11110000 ; $C0
-	.db %11110000 ; $C1
-	.db %11110000 ; $C2
-	.db %11110000 ; $C3
-	.db %11110000 ; $C4
-	.db %11110000 ; $C5
-	.db %11110000 ; $C6
-	.db %11110000 ; $C7
-	.db %11110000 ; $C8
-	.db %11110000 ; $C9
-	.db %00000100 ; $CA
-	.db %00000100 ; $CB
-	.db %00000100 ; $CC
-	.db %00000100 ; $CD
-	.db %00000100 ; $CE
-	.db %00000100 ; $CF
-	.db %00000100 ; $D0
-	.db %00000100 ; $D1
-	.db %00000100 ; $D2
-	.db %00000100 ; $D3
-	.db %00000100 ; $D4
-	.db %00001111 ; $D5
-	.db %00001111 ; $D6
-	.db %00001111 ; $D7
-	.db %00001111 ; $D8
-	.db %00001111 ; $D9
-	.db %00001111 ; $DA
-	.db %00001111 ; $DB
-	.db %00001111 ; $DC
-	.db %00001111 ; $DD
-	.db %00001111 ; $DE
-	.db %00001111 ; $DF
-	.db %00001111 ; $E0
-	.db %00001111 ; $E1
-	.db %00001111 ; $E2
-	.db %00001111 ; $E3
-	.db %00001111 ; $E4
-	.db %00001111 ; $E5
-	.db %00001111 ; $E6
-	.db %00001111 ; $E7
-	.db %00001111 ; $E8
-	.db %00001111 ; $E9
-	.db %00001111 ; $EA
-	.db %00001111 ; $EB
-	.db %00001111 ; $EC
-	.db %00001111 ; $ED
-	.db %00001111 ; $EE
-	.db %00001111 ; $EF
-	.db %00001111 ; $F0
-	.db %00001111 ; $F1
-	.db %00001111 ; $F2
-	.db %00001111 ; $F3
-	.db %00001111 ; $F4
-	.db %00001111 ; $F5
-	.db %00001111 ; $F6
-	.db %00001111 ; $F7
-	.db %00001111 ; $F8
-	.db %00001111 ; $F9
-	.db %00001111 ; $FA
-	.db %00001111 ; $FB
-	.db %00001111 ; $FC
-	.db %00001111 ; $FD
-	.db %00001111 ; $FE
-	.db %00001111 ; $FF
-
-
-; Tile attributes
-;
-; This table determines properties of each tile, including collision properties and special flags
-;
-; %76543210
-;  xxxxMMHH
-;
-; * M: movement effect (0 = none, 1 = slippery, 2 = quicksand, 3 = conveyor)
-; * H: health effect (0 = none, 1 = damage, 2 = kill, 3 = heal)
-;
-TileInteractionAttributesTable:
-	.db %00000000 ; $00
-	.db %00000000 ; $01
-	.db %00000000 ; $02
-	.db %00000000 ; $03
-	.db %00000000 ; $04
-	.db %00000000 ; $05
-	.db %00000000 ; $06
-	.db %00000000 ; $07
-	.db %00000000 ; $08
-	.db %00000000 ; $09
-	.db %00000000 ; $0A
-	.db %00000000 ; $0B
-	.db %00000000 ; $0C
-	.db %00000000 ; $0D
-	.db %00000000 ; $0E
-	.db %00000000 ; $0F
-	.db %00000000 ; $10
-	.db %00000000 ; $11
-	.db %00000000 ; $12
-	.db %00000000 ; $13
-	.db %00000000 ; $14
-	.db %00000000 ; $15
-	.db %00000100 ; $16
-	.db %00000000 ; $17
-	.db %00000000 ; $18
-	.db %00000000 ; $19
-	.db %00000001 ; $1A
-	.db %00000000 ; $1B
-	.db %00000000 ; $1C
-	.db %00000000 ; $1D
-	.db %00000000 ; $1E
-	.db %00000000 ; $1F
-	.db %00000000 ; $20
-	.db %00000000 ; $21
-	.db %00000000 ; $22
-	.db %00000000 ; $23
-	.db %00000000 ; $24
-	.db %00000000 ; $25
-	.db %00000000 ; $26
-	.db %00000000 ; $27
-	.db %00000000 ; $28
-	.db %00000000 ; $29
-	.db %00000000 ; $2A
-	.db %00000000 ; $2B
-	.db %00000000 ; $2C
-	.db %00000000 ; $2D
-	.db %00000000 ; $2E
-	.db %00000000 ; $2F
-	.db %00000000 ; $30
-	.db %00000000 ; $31
-	.db %00000000 ; $32
-	.db %00000000 ; $33
-	.db %00000000 ; $34
-	.db %00000000 ; $35
-	.db %00000000 ; $36
-	.db %00000000 ; $37
-	.db %00000000 ; $38
-	.db %00000000 ; $39
-	.db %00000000 ; $3A
-	.db %00000000 ; $3B
-	.db %00000000 ; $3C
-	.db %00000000 ; $3D
-	.db %00000000 ; $3E
-	.db %00000000 ; $3F
-	.db %00000000 ; $40
-	.db %00000000 ; $41
-	.db %00000000 ; $42
-	.db %00000000 ; $43
-	.db %00000000 ; $44
-	.db %00000000 ; $45
-	.db %00000000 ; $46
-	.db %00000000 ; $47
-	.db %00000000 ; $48
-	.db %00000000 ; $49
-	.db %00000000 ; $4A
-	.db %00000000 ; $4B
-	.db %00000000 ; $4C
-	.db %00000000 ; $4D
-	.db %00000000 ; $4E
-	.db %00000000 ; $4F
-	.db %00000000 ; $50
-	.db %00000000 ; $51
-	.db %00000000 ; $52
-	.db %00000000 ; $53
-	.db %00000000 ; $54
-	.db %00000000 ; $55
-	.db %00000000 ; $56
-	.db %00000000 ; $57
-	.db %00000000 ; $58
-	.db %00000000 ; $59
-	.db %00000000 ; $5A
-	.db %00000000 ; $5B
-	.db %00000000 ; $5C
-	.db %00000000 ; $5D
-	.db %00000000 ; $5E
-	.db %00000000 ; $5F
-	.db %00000000 ; $60
-	.db %00000000 ; $61
-	.db %00000000 ; $62
-	.db %00000000 ; $63
-	.db %00000000 ; $64
-	.db %00000000 ; $65
-	.db %00000000 ; $66
-	.db %00001100 ; $67
-	.db %00001100 ; $68
-	.db %00000000 ; $69
-	.db %00000000 ; $6A
-	.db %00000000 ; $6B
-	.db %00000000 ; $6C
-	.db %00000000 ; $6D
-	.db %00000000 ; $6E
-	.db %00000000 ; $6F
-	.db %00000000 ; $70
-	.db %00000000 ; $71
-	.db %00000000 ; $72
-	.db %00000000 ; $73
-	.db %00000000 ; $74
-	.db %00000000 ; $75
-	.db %00000000 ; $76
-	.db %00000000 ; $77
-	.db %00000000 ; $78
-	.db %00000000 ; $79
-	.db %00000000 ; $7A
-	.db %00000000 ; $7B
-	.db %00000000 ; $7C
-	.db %00000000 ; $7D
-	.db %00000000 ; $7E
-	.db %00000000 ; $7F
-	.db %00000000 ; $80
-	.db %00000000 ; $81
-	.db %00000000 ; $82
-	.db %00000000 ; $83
-	.db %00000000 ; $84
-	.db %00000000 ; $85
-	.db %00000000 ; $86
-	.db %00000000 ; $87
-	.db %00000000 ; $88
-	.db %00000000 ; $89
-	.db %00001000 ; $8A
-	.db %00001000 ; $8B
-	.db %00000000 ; $8C
-	.db %00000000 ; $8D
-	.db %00000000 ; $8E
-	.db %00000000 ; $8F
-	.db %00000000 ; $90
-	.db %00000000 ; $91
-	.db %00000000 ; $92
-	.db %00000000 ; $93
-	.db %00000000 ; $94
-	.db %00000000 ; $95
-	.db %00000000 ; $96
-	.db %00000000 ; $97
-	.db %00000000 ; $98
-	.db %00000000 ; $99
-	.db %00000000 ; $9A
-	.db %00000000 ; $9B
-	.db %00000000 ; $9C
-	.db %00000000 ; $9D
-	.db %00000000 ; $9E
-	.db %00000000 ; $9F
-	.db %00000000 ; $A0
-	.db %00000000 ; $A1
-	.db %00000000 ; $A2
-	.db %00000000 ; $A3
-	.db %00000000 ; $A4
-	.db %00000000 ; $A5
-	.db %00000000 ; $A6
-	.db %00000000 ; $A7
-	.db %00000000 ; $A8
-	.db %00000000 ; $A9
-	.db %00000000 ; $AA
-	.db %00000000 ; $AB
-	.db %00000000 ; $AC
-	.db %00000000 ; $AD
-	.db %00000000 ; $AE
-	.db %00000000 ; $AF
-	.db %00000000 ; $B0
-	.db %00000000 ; $B1
-	.db %00000000 ; $B2
-	.db %00000000 ; $B3
-	.db %00000000 ; $B4
-	.db %00000000 ; $B5
-	.db %00000000 ; $B6
-	.db %00000000 ; $B7
-	.db %00000000 ; $B8
-	.db %00000000 ; $B9
-	.db %00000000 ; $BA
-	.db %00000000 ; $BB
-	.db %00000000 ; $BC
-	.db %00000000 ; $BD
-	.db %00000000 ; $BE
-	.db %00000000 ; $BF
-	.db %00000000 ; $C0
-	.db %00000000 ; $C1
-	.db %00000000 ; $C2
-	.db %00000000 ; $C3
-	.db %00000000 ; $C4
-	.db %00000000 ; $C5
-	.db %00000000 ; $C6
-	.db %00000000 ; $C7
-	.db %00000000 ; $C8
-	.db %00000000 ; $C9
-	.db %00000000 ; $CA
-	.db %00000000 ; $CB
-	.db %00000000 ; $CC
-	.db %00000000 ; $CD
-	.db %00000000 ; $CE
-	.db %00000000 ; $CF
-	.db %00000000 ; $D0
-	.db %00000000 ; $D1
-	.db %00000000 ; $D2
-	.db %00000000 ; $D3
-	.db %00000000 ; $D4
-	.db %00000000 ; $D5
-	.db %00000000 ; $D6
-	.db %00000000 ; $D7
-	.db %00000000 ; $D8
-	.db %00000000 ; $D9
-	.db %00000000 ; $DA
-	.db %00000000 ; $DB
-	.db %00000000 ; $DC
-	.db %00000000 ; $DD
-	.db %00000000 ; $DE
-	.db %00000000 ; $DF
-	.db %00000000 ; $E0
-	.db %00000000 ; $E1
-	.db %00000000 ; $E2
-	.db %00000000 ; $E3
-	.db %00000000 ; $E4
-	.db %00000000 ; $E5
-	.db %00000000 ; $E6
-	.db %00000000 ; $E7
-	.db %00000000 ; $E8
-	.db %00000000 ; $E9
-	.db %00000000 ; $EA
-	.db %00000000 ; $EB
-	.db %00000000 ; $EC
-	.db %00000000 ; $ED
-	.db %00000000 ; $EE
-	.db %00000000 ; $EF
-	.db %00000000 ; $F0
-	.db %00000000 ; $F1
-	.db %00000000 ; $F2
-	.db %00000000 ; $F3
-	.db %00000000 ; $F4
-	.db %00000000 ; $F5
-	.db %00000000 ; $F6
-	.db %00000000 ; $F7
-	.db %00000000 ; $F8
-	.db %00000000 ; $F9
-	.db %00000000 ; $FA
-	.db %00000000 ; $FB
-	.db %00000000 ; $FC
-	.db %00000000 ; $FD
-	.db %00000000 ; $FE
-	.db %00000000 ; $FF
-ENDIF
-
-
 ;
 ; ### Warp destination lookup table
 ;
@@ -4970,30 +4431,16 @@ UpdateJoypads:
 UpdateJoypads_DoubleCheck:
 	; Work around DPCM sample bug,
 	; where some spurious inputs are read
-IFDEF CONTROLLER_2_DEBUG
-	LDY Player2JoypadPress
-	STY UpdateJoypadsTemp
-ENDIF
 	LDY Player1JoypadPress
 	JSR ReadJoypads
 
 	CPY Player1JoypadPress
 	BNE UpdateJoypads_DoubleCheck
 
-IFDEF CONTROLLER_2_DEBUG
-	LDY UpdateJoypadsTemp
-	CPY Player2JoypadPress
-	BNE UpdateJoypads_DoubleCheck
-ENDIF
-
 	LDX #$01
 
 UpdateJoypads_Loop:
 	LDA Player1JoypadPress, X ; Update the press/held values
-IFDEF JOYPAD_D1
-	ORA Player1JoypadExpansionPress, X
-	STA Player1JoypadPress, X
-ENDIF
 	TAY
 	EOR Player1JoypadHeld, X
 	AND Player1JoypadPress, X
@@ -5087,7 +4534,11 @@ EnsureCorrectMusic:
 	BCS EnsureCorrectMusic_Exit
 
 	LDA LevelMusicIndexes, X
+IFNDEF GS_MUSIC
 	STA MusicQueue1
+ELSE
+	JMP GetLevelMusic
+ENDIF
 
 EnsureCorrectMusic_Exit:
 	RTS
@@ -5099,9 +4550,6 @@ DoAreaReset:
 	STA ObjectCarriedOver
 	STA SubspaceTimer
 	STA SubspaceDoorTimer
-IFDEF CONTROLLER_2_DEBUG
-	STA ChangeCharacterPoofTimer
-ENDIF
 	LDX #$08
 
 DoAreaReset_EnemyLoop:
@@ -5155,13 +4603,7 @@ KillPlayer:
 	LDA #PlayerState_Dying ; Mark player as dead
 	STA PlayerState
 	LDA #$00 ; Clear some variables
-IFNDEF RESPAWN_INSTEAD_OF_DEATH
 	STA PlayerHealth
-ELSE
-	NOP
-	NOP
-	NOP
-ENDIF
 	STA CrouchJumpTimer
 	STA StarInvincibilityTimer
 	LDA #SpriteAnimation_Dead ; Set player animation to dead?
@@ -5189,23 +4631,23 @@ loc_BANKF_F747:
 	LDX byte_RAM_D
 
 loc_BANKF_F749:
-IFNDEF RESPAWN_INSTEAD_OF_DEATH
+IFNDEF GS_MUSIC
 	; Set music to death jingle
 	LDA #Music2_DeathJingle
 	STA MusicQueue2
 	; BUG: Setting DPCM at the same time as music
+	; Not that it matters if we're switching to the G/S sound engine
 	LDA #DPCM_PlayerDeath
 	STA DPCMQueue
-	RTS
 ELSE
-	LDA #DPCM_PlayerDeath
-	STA DPCMQueue
-	JMP RespawnPlayer
-	NOP
-	NOP
-	NOP
+	STY StackArea + 2
+	LDY #0
+	JSR PlayMusic
+	LDY #SFX_DEX_FANFARE_LESS_THAN_20
+	JSR PlaySFX
+	LDY StackArea + 2
 ENDIF
-
+	RTS
 
 ;
 ; Copies the raw level data to memory.
@@ -5410,9 +4852,6 @@ TileQuads1:
 	.db $32, $34, $33, $35 ; $80
 	.db $33, $35, $33, $35 ; $84
 	.db $24, $26, $25, $27 ; $88
-IFDEF EXPAND_TABLES
-	unusedSpace TileQuads1 + $100, $FC
-ENDIF
 
 TileQuads2:
 	.db $FA, $FA, $FA, $FA ; $00
@@ -5474,9 +4913,6 @@ TileQuads2:
 	.db $6C, $54, $6D, $55 ; $E0
 	.db $32, $34, $33, $35 ; $E4
 	.db $33, $35, $33, $35 ; $E8
-IFDEF EXPAND_TABLES
-	unusedSpace TileQuads2 + $100, $FC
-ENDIF
 
 TileQuads3:
 	.db $94, $95, $94, $95 ; $00
@@ -5523,9 +4959,7 @@ TileQuads3:
 	.db $72, $73, $4A, $4B ; $A4
 	.db $40, $42, $41, $43 ; $A8
 	.db $41, $43, $41, $43 ; $AC
-IFDEF EXPAND_TABLES
-	unusedSpace TileQuads3 + $100, $FC
-ENDIF
+
 TileQuads4:
 	.db $40, $42, $41, $43 ; $00
 	.db $40, $42, $41, $43 ; $04
@@ -5552,9 +4986,6 @@ TileQuads4:
 	.db $8E, $8F, $8F, $8E ; $58
 	.db $72, $73, $73, $72 ; $5C
 	.db $44, $45, $45, $44 ; $60
-IFDEF EXPAND_TABLES
-	unusedSpace TileQuads4 + $100, $FC
-ENDIF
 
 EndOfLevelDoor: ; PPU data
 	.db $22, $D0, $04, $FC, $FC, $AD, $FA
@@ -5652,14 +5083,7 @@ AnimateCHRRoutine_SetSpeed:
 	INY
 
 AnimatedCHRCheck:
-IFDEF FIX_CHR_CYCLE
 	CPY #CHRBank_Animated8 + 1
-ELSE
-	; Bug: This is in the original game
-	; The last frame of the animation is effectively skipped because
-	; we immediately reset to the first frame when we hit it.
-	CPY #CHRBank_Animated8
-ENDIF
 
 	BCC AnimateCHRRoutine_SetCHR
 
@@ -5733,22 +5157,6 @@ FindSpriteSlot_CheckInactiveSlot:
 	BEQ FindSpriteSlot_Exit
 
 
-IFDEF DEBUG
-	.include "src/extras/debug-f.asm"
-ENDIF
-
-; Unused space in the original ($FB36 - $FDFF)
-unusedSpace $FE00, $FF
-
-IFDEF RESET_CHR_LATCH
-CHRBank_Boss:
-	.db CHRBank_EnemiesGrass ; Mouser
-	.db CHRBank_EnemiesDesert ; Tryclyde
-	.db CHRBank_EnemiesIce ; Fryguy
-	.db CHRBank_EnemiesGrass ; Clawgrip
-	.db CHRBank_EnemiesSky ; Wart
-ENDIF
-
 CHRBank_WorldEnemies:
 	.db CHRBank_EnemiesGrass
 	.db CHRBank_EnemiesDesert
@@ -5791,13 +5199,6 @@ LoadWorldCHRBanks:
 	LDA #CHRBank_Animated1
 	STA BackgroundCHR2
 
-IFDEF RESET_CHR_LATCH
-	LDY BossTileset
-	BMI LoadCharacterCHRBanks
-	LDA CHRBank_Boss, Y
-	STA SpriteCHR4
-ENDIF
-
 LoadCharacterCHRBanks:
 	LDA CurrentCharacter
 	ASL A
@@ -5806,37 +5207,6 @@ LoadCharacterCHRBanks:
 	LDA CHRBank_CharacterSize, Y
 	STA SpriteCHR1
 	RTS
-
-IFDEF RESET_CHR_LATCH
-CheckResetCHRLatch:
-	LDA ResetCHRLatch
-	BEQ CheckResetCHRLatch_Exit
-
-	LDA #$00
-	STA ResetCHRLatch
-
-	LDY #CHRBank_CommonEnemies1
-	STY SpriteCHR2
-	INY
-	STY SpriteCHR3
-
-	LDY CurrentWorldTileset
-	LDA CHRBank_WorldEnemies, Y
-	STA SpriteCHR4
-	LDA CHRBank_WorldBossBackground, Y
-	STA BackgroundCHR1
-	LDA #CHRBank_Animated1
-	STA BackgroundCHR2
-
-	LDY BossTileset
-	BMI CheckResetCHRLatch_Exit
-	LDA CHRBank_Boss, Y
-	STA SpriteCHR4
-
-CheckResetCHRLatch_Exit:
-	RTS
-ENDIF
-
 
 LoadTitleScreenCHRBanks:
 	LDA #CHRBank_TitleScreenBG1
@@ -5900,59 +5270,6 @@ LoadMarioSleepingCHRBanks:
 	STA BackgroundCHR2
 	RTS
 
-
-IFDEF RESPAWN_INSTEAD_OF_DEATH
-PauseRespawn:
-	; Check conditions where we shouldn't allow respawn
-	LDA PlayerLock
-	BNE PauseRespawn_Exit
-	; BNE PauseRespawn_ShowPauseScreen
-
-PauseRespawn_KillPlayer:
-	JSR KillPlayer
-PauseRespawn_Exit:
-	LDA IsHorizontalLevel
-	BEQ PauseRespawn_Vertical
-	JMP HorizontalLevel_CheckSubArea
-PauseRespawn_Vertical:
-	JMP VerticalLevel_ProcessFrame
-
-PauseRespawn_ShowPauseScreen:
-	JSR PauseScreen_ExtraLife
-	JMP SetStack100Pause
-
-RespawnPlayer:
-	; Stop invincibility music
-	LDA MusicPlaying1
-	CMP #Music1_Invincible
-	BNE RespawnPlayer_AfterMusic
-	LDY CurrentMusicIndex
-	LDA LevelMusicIndexes, Y
-	STA MusicQueue1
-RespawnPlayer_AfterMusic:
-	LDA #SpriteAnimation_Standing
-	STA PlayerAnimationFrame
-	RTS
-
-
-ResetSubAreaJarLayout:
-	LDA #PRGBank_6_7
-	JSR ChangeMappedPRGBank
-
-	JSR ClearSubAreaTileLayout
-
-	LDA #PRGBank_0_1
-	JSR ChangeMappedPRGBank
-
-	RTS
-
-ENDIF
-
-
-; Unused space in the original ($FE97 - $FF4F)
-unusedSpace $FF50, $FF
-
-
 ;
 ; Public RESET
 ;
@@ -5979,26 +5296,11 @@ RESET_VBlank2Loop:
 	; Wait for second VBlank
 	LDA PPUSTATUS
 	BPL RESET_VBlank2Loop
-
-IF INES_MAPPER == MAPPER_FME7
-	LDA #$0C
-	STA FME7_Command
-	LDA #VMirror
-	STA FME7_Parameter
-ELSEIF INES_MAPPER == MAPPER_MMC5
 	LDA #MMC5_VMirror
 	STA MMC5_NametableMapping
 	; Maintain location of the next subroutine
-	NOP_compat
-	NOP_compat
-	NOP_compat
-	NOP_compat
-	NOP_compat
-ELSE ;  INES_MAPPER == MAPPER_MMC3
-	LDA #VMirror
-	STA MMC3_Mirroring
-	LDA #$80
-	STA MMC3_PRGRamProtect
+IFNDEF GS_MUSIC
+	JSR InitSound
 ENDIF
 	JMP StartGame
 
@@ -6006,36 +5308,8 @@ ENDIF
 ;
 ; Switches the current CHR banks
 ;
-IF INES_MAPPER == MAPPER_FME7
-ChangeCHRBanks:
-	JMP ChangeCHRBanks_FME7
-
-	; Maintain location of the next subroutine
-	unusedSpace $FF85, $FF
-
-ELSEIF INES_MAPPER == MAPPER_MMC5
 ChangeCHRBanks:
 	JMP ChangeCHRBanks_MMC5
-
-	; Maintain location of the next subroutine
-	unusedSpace $FF85, $FF
-
-ELSE ; INES_MAPPER == MAPPER_MMC3
-ChangeCHRBanks:
-	LDY #$05
-ChangeCHRBanks_Loop:
-	TYA
-	ORA #CHR_A12_INVERSION
-	STA MMC3_BankSelect
-	LDA BackgroundCHR1, Y
-	STA MMC3_BankData
-	DEY
-	BPL ChangeCHRBanks_Loop
-
-	RTS
-ENDIF
-
-
 ;
 ; Calling this one will save the changed bank
 ; to RAM, so if something uses the below version
@@ -6043,6 +5317,9 @@ ENDIF
 ;
 ChangeMappedPRGBank:
 	STA MMC3PRGBankTemp ; See below comment.
+IFDEF GS_MUSIC
+	JMP PushLower16K
+ENDIF
 
 ;
 ; Any call to this subroutine switches the lower two banks together.
@@ -6069,53 +5346,17 @@ ChangeMappedPRGBank:
 ; like music handling and such)
 ;
 ChangeMappedPRGBankWithoutSaving:
+IFNDEF GS_MUSIC
 	ASL A
 
-IF INES_MAPPER == MAPPER_FME7
-	; Change first bank
-	PHA
-	LDA #$09
-	STA FME7_Command
-	PLA
-	STA FME7_Parameter
-	ORA #$01 ; Use the bank right after this one next
-	; Change second bank
-	PHA
-	LDA #$0A
-	STA FME7_Command
-	PLA
-	STA FME7_Parameter
-
-	RTS
-
-ELSEIF INES_MAPPER == MAPPER_MMC5
 	ORA #$80
 	STA MMC5_PRGBankSwitch2
 	ORA #$01
 	STA MMC5_PRGBankSwitch3
 	RTS
-
-	; Maintain location of the next subroutine
-	unusedSpace $FFA0, $FF
-
-ELSE ; INES_MAPPER == MAPPER_MMC3
-	; Change first bank
-	PHA
-	LDA #CHR_A12_INVERSION | $06
-	STA MMC3_BankSelect
-	PLA
-	STA MMC3_BankData
-	ORA #$01 ; Use the bank right after this one next
-	; Change second bank
-	PHA
-	LDA #CHR_A12_INVERSION | $07
-	STA MMC3_BankSelect
-	PLA
-	STA MMC3_BankData
-	RTS
-
+ELSE
+	JMP SwitchLower16K
 ENDIF
-
 
 ;
 ; Sets the nametable mirroring by writing `$A000`.
@@ -6124,47 +5365,27 @@ ENDIF
 ; - `A`: `$00` =  vertical, `$01` = horizontal
 ;
 ChangeNametableMirroring:
-IF INES_MAPPER == MAPPER_FME7
-	PHA
-	LDA #$0C
-	STA FME7_Command
-	PLA
-	STA FME7_Parameter
-ELSEIF INES_MAPPER == MAPPER_MMC5
 	STA MMC5_NametableMapping
-ELSE
-	STA MMC3_Mirroring
-ENDIF
 	RTS
-
-; Unused space in the original ($FFA4 - $FFEA)
-unusedSpace $FFEB, $FF
-
-; Technically you can delete the stuff from here to the vector table as well,
-; but because it looks slightly less like unused space it isn't being removed.
-
-IFDEF PRESERVE_UNUSED_SPACE
-; Not used; leftover part of FamicomBox cart title?
-UnusedTextZELDA:
-	.db 'ZELDA'
-ENDIF
 
 ; Note that this is NOT CODE.
 ; If the NES actually hits a BRK, the game will probably just explode.
 ; If you wanted, you could write some sort of crash handler though.
 IRQ:
-IFDEF PRESERVE_UNUSED_SPACE
-	.db $DF
-	.db $E6
-	.db $00
-	.db $00
-	.db $38
-	.db $04
-	.db $01
-	.db $04
-	.db $01
-	.db $BE
-ENDIF
+	RTI
+
+PushLower16K:
+	STA zWindow1
+
+SwitchLower16K:
+	ASL A
+	ORA #$80
+	STA MMC5_PRGBankSwitch2
+	ORA #1
+	STA MMC5_PRGBankSwitch3
+	RTS
+
+.include "src/home/audio.asm"
 
 ;
 ; Vectors for the NES CPU. These must ALWAYS be at $FFFA!
@@ -6183,11 +5404,5 @@ ENDIF
 
 NESVectorTables:
 	.dw NMI
-IF INES_MAPPER == MAPPER_FME7
-	.dw RESET_FME7
-ELSEIF INES_MAPPER == MAPPER_MMC5
 	.dw RESET_MMC5
-ELSE ; INES_MAPPER == MAPPER_MMC3
-	.dw RESET
-ENDIF
 	.dw IRQ

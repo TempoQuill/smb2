@@ -1,4 +1,3 @@
-IFNDEF PROTOTYPE_MUSIC
 MusicDataEnding6:
 MusicDataEnding6_Square2:
 	.db $F4
@@ -245,4 +244,3 @@ MusicDataEnding6_Square1:
 	.db $52
 	.db $4C
 	.db $5E
-ENDIF

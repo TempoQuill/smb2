@@ -158,7 +158,6 @@ MusicDataUndergroundBeta2_Triangle:
 	.db $7E
 
 MusicDataUndergroundBeta1_DPCM:
-IFNDEF EXPAND_MUSIC
 	.db $8A, $01, $10
 	.db $84, $01, $01
 	.db $88, $01
@@ -170,22 +169,8 @@ IFNDEF EXPAND_MUSIC
 	.db $88, $10
 	.db $84, $10, $10
 	.db $00
-ELSE
-	.db $8A, $02, $06
-	.db $84, $02, $02
-	.db $88, $02
-	.db $8A, $06
-	.db $8A, $02
-	.db $89, $06
-	.db $88, $02, $02
-	.db $84, $02
-	.db $88, $06
-	.db $84, $06, $06
-	.db $00
-ENDIF
 
 MusicDataUndergroundBeta2_DPCM:
-IFNDEF EXPAND_MUSIC
 	.db $88, $01, $10
 	.db $84, $01, $01
 	.db $88, $10
@@ -194,16 +179,6 @@ IFNDEF EXPAND_MUSIC
 	.db $84, $01
 	.db $88, $10
 	.db $00
-ELSE
-	.db $88, $02, $06
-	.db $84, $02, $01
-	.db $88, $06
-	.db $84, $02, $02, $06
-	.db $88, $02
-	.db $84, $02
-	.db $88, $06
-	.db $00
-ENDIF
 
 MusicDataUndergroundBeta1_Noise:
 	.db $8A

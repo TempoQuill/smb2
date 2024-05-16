@@ -110,9 +110,6 @@ World1SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $25, $10, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World1SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 2
@@ -167,9 +164,6 @@ World2SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $30, $23, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World2SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 3
@@ -224,9 +218,6 @@ World3SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $2B, $10, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World3SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 4
@@ -281,9 +272,6 @@ World4SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $27, $16, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World4SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 5
@@ -338,9 +326,6 @@ World5SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $16, $0F ; $1C
 	.db $FF, $16, $30, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World5SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 6
@@ -395,9 +380,6 @@ World6SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $30, $23, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World6SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 7
@@ -452,9 +434,6 @@ World7SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $30, $2A, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World7SpritePalettes + $30, $FF
-ENDIF
 
 ; -----
 
@@ -528,9 +507,6 @@ World1GroundTilesHorizontal:
 	.db $00, $A0, $A0, $99 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World1GroundTilesHorizontal + $40, $00
-ENDIF
 
 World1GroundTilesVertical:
 	.db $00, $9D, $9E, $C6 ; $00
@@ -541,9 +517,6 @@ World1GroundTilesVertical:
 	.db $00, $00, $A0, $00 ; $05
 	.db $00, $93, $9E, $C6 ; $06
 	.db $00, $40, $9E, $C6 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World1GroundTilesVertical + $40, $00
-ENDIF
 
 World2GroundTilesHorizontal:
 	.db $00, $99, $99, $99 ; $00
@@ -554,9 +527,6 @@ World2GroundTilesHorizontal:
 	.db $00, $D6, $9B, $18 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World2GroundTilesHorizontal + $40, $00
-ENDIF
 
 World2GroundTilesVertical:
 	.db $00, $9D, $9E, $C6 ; $00
@@ -567,9 +537,6 @@ World2GroundTilesVertical:
 	.db $00, $00, $00, $00 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World2GroundTilesVertical + $40, $00
-ENDIF
 
 World3GroundTilesHorizontal:
 	.db $00, $99, $D5, $00 ; $00
@@ -580,9 +547,6 @@ World3GroundTilesHorizontal:
 	.db $00, $A0, $A0, $99 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World3GroundTilesHorizontal + $40, $00
-ENDIF
 
 World3GroundTilesVertical:
 	.db $00, $C6, $9E, $9D ; $00
@@ -593,9 +557,6 @@ World3GroundTilesVertical:
 	.db $00, $00, $A0, $00 ; $05
 	.db $00, $40, $9E, $C6 ; $06
 	.db $00, $06, $A0, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World3GroundTilesVertical + $40, $00
-ENDIF
 
 World4GroundTilesHorizontal:
 	.db $00, $99, $D5, $00 ; $00
@@ -606,9 +567,6 @@ World4GroundTilesHorizontal:
 	.db $00, $0A, $0A, $08 ; $05
 	.db $00, $1F, $1F, $1F ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World4GroundTilesHorizontal + $40, $00
-ENDIF
 
 World4GroundTilesVertical:
 	.db $00, $C6, $99, $9D ; $00
@@ -619,9 +577,6 @@ World4GroundTilesVertical:
 	.db $00, $18, $18, $18 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World4GroundTilesVertical + $40, $00
-ENDIF
 
 World5GroundTilesHorizontal:
 	.db $00, $99, $D5, $40 ; $00
@@ -632,9 +587,6 @@ World5GroundTilesHorizontal:
 	.db $00, $A0, $A0, $99 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World5GroundTilesHorizontal + $40, $00
-ENDIF
 
 World5GroundTilesVertical:
 	.db $00, $9D, $9E, $C6 ; $00
@@ -645,9 +597,6 @@ World5GroundTilesVertical:
 	.db $00, $00, $A0, $00 ; $05
 	.db $00, $93, $9E, $C6 ; $06
 	.db $00, $40, $9E, $C6 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World5GroundTilesVertical + $40, $00
-ENDIF
 
 World6GroundTilesHorizontal:
 	.db $00, $99, $99, $99 ; $00
@@ -658,9 +607,6 @@ World6GroundTilesHorizontal:
 	.db $00, $D6, $9B, $18 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World6GroundTilesHorizontal + $40, $00
-ENDIF
 
 World6GroundTilesVertical:
 	.db $00, $9D, $9E, $C6 ; $00
@@ -671,9 +617,6 @@ World6GroundTilesVertical:
 	.db $00, $00, $00, $00 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World6GroundTilesVertical + $40, $00
-ENDIF
 
 World7GroundTilesHorizontal:
 	.db $00, $9C, $9C, $9C ; $00
@@ -684,9 +627,6 @@ World7GroundTilesHorizontal:
 	.db $00, $00, $00, $00 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World7GroundTilesHorizontal + $40, $00
-ENDIF
 
 World7GroundTilesVertical:
 	.db $00, $9C, $9C, $9C ; $00
@@ -697,203 +637,8 @@ World7GroundTilesVertical:
 	.db $00, $00, $A0, $00 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World7GroundTilesVertical + $40, $00
-ENDIF
 
 ; -----
-
-
-;
-; ## Tile quads (unused)
-;
-; These appear to be duplicates of the tile quads from bank F.
-;
-UnusedTileQuadPointersLo:
-	.db <UnusedTileQuads1
-	.db <UnusedTileQuads2
-	.db <UnusedTileQuads3
-	.db <UnusedTileQuads4
-
-UnusedTileQuadPointersHi:
-	.db >UnusedTileQuads1
-	.db >UnusedTileQuads2
-	.db >UnusedTileQuads3
-	.db >UnusedTileQuads4
-
-UnusedTileQuads1:
-	.db $FE,$FE,$FE,$FE ; $00
-	.db $B4,$B6,$B5,$B7 ; $04
-	.db $B8,$FA,$B9,$FA ; $08
-	.db $FA,$FA,$B2,$B3 ; $0C
-	.db $BE,$BE,$BF,$BF ; $10
-	.db $BF,$BF,$BF,$BF ; $14
-	.db $4A,$4A,$4B,$4B ; $18
-	.db $5E,$5F,$5E,$5F ; $1C
-	.db $E8,$E8,$A9,$A9 ; $20
-	.db $46,$FC,$46,$FC ; $24
-	.db $A9,$A9,$A9,$A9 ; $28
-	.db $FC,$FC,$FC,$FC ; $2C
-	.db $E9,$E9,$A9,$A9 ; $30
-	.db $FC,$48,$FC,$48 ; $34
-	.db $11,$11,$11,$11 ; $38
-	.db $22,$22,$22,$22 ; $3C
-	.db $33,$33,$33,$33 ; $40
-	.db $E8,$EB,$A9,$A9 ; $44
-	.db $74,$76,$75,$77 ; $48
-	.db $98,$9A,$99,$9B ; $4C
-	.db $9C,$9A,$9D,$9B ; $50
-	.db $9C,$9E,$9B,$9F ; $54
-	.db $58,$5A,$59,$5B ; $58
-	.db $5E,$5F,$5E,$5F ; $5C
-	.db $8E,$8F,$8F,$8E ; $60
-	.db $72,$73,$73,$72 ; $64
-	.db $A6,$A6,$A7,$A7 ; $68
-	.db $92,$93,$93,$92 ; $6C
-	.db $74,$76,$75,$77 ; $70
-	.db $70,$72,$71,$73 ; $74
-	.db $71,$73,$71,$73 ; $78
-	.db $24,$26,$25,$27 ; $7C
-	.db $32,$34,$33,$35 ; $80
-	.db $33,$35,$33,$35 ; $84
-	.db $24,$26,$25,$27 ; $88
-
-UnusedTileQuads2:
-	.db $FA,$FA,$FA,$FA ; $00
-	.db $FA,$FA,$FA,$FA ; $04
-	.db $FA,$FA,$FA,$FA ; $08
-	.db $FA,$FA,$B0,$B1 ; $0C
-	.db $FA,$FA,$B0,$B1 ; $10
-	.db $FA,$FA,$B0,$B1 ; $14
-	.db $FA,$FA,$B0,$B1 ; $18
-	.db $FA,$FA,$B0,$B1 ; $1C
-	.db $FA,$FA,$B0,$B1 ; $20
-	.db $FA,$FA,$B0,$B1 ; $24
-	.db $FA,$FA,$B0,$B1 ; $28
-	.db $FA,$FA,$B0,$B1 ; $2C
-	.db $FA,$FA,$B0,$B1 ; $30
-	.db $FA,$FA,$B0,$B1 ; $34
-	.db $A0,$A2,$A1,$A3 ; $38
-	.db $80,$82,$81,$83 ; $3C
-	.db $F4,$86,$F5,$87 ; $40
-	.db $84,$86,$85,$87 ; $44
-	.db $FC,$FC,$FC,$FC ; $48
-	.db $AD,$FB,$AC,$AD ; $4C
-	.db $AC,$AC,$AC,$AC ; $50
-	.db $FB,$3B,$3B,$AC ; $54
-	.db $FC,$FC,$FC,$FC ; $58
-	.db $F4,$86,$F5,$87 ; $5C
-	.db $FB,$49,$49,$FB ; $60
-	.db $FE,$FE,$FE,$FE ; $64
-	.db $FE,$FE,$6D,$FE ; $68
-	.db $3C,$3E,$3D,$3F ; $6C
-	.db $58,$FD,$59,$5A ; $70
-	.db $5B,$5A,$FD,$FD ; $74
-	.db $5B,$5C,$FD,$5D ; $78
-	.db $FD,$FD,$5B,$5A ; $7C
-	.db $6C,$FE,$FE,$FE ; $80
-	.db $FE,$FE,$FE,$FE ; $84
-	.db $FE,$6E,$FE,$6F ; $88
-	.db $20,$22,$21,$23 ; $8C
-	.db $6E,$6F,$70,$71 ; $90
-	.db $57,$57,$FB,$FB ; $94
-	.db $57,$57,$FE,$FE ; $98
-	.db $D3,$D3,$FB,$FB ; $9C
-	.db $D2,$D2,$FB,$FB ; $A0
-	.db $7C,$7E,$7D,$7F ; $A4
-	.db $CA,$CC,$CB,$CD ; $A8
-	.db $CA,$CC,$CB,$CD ; $AC
-	.db $C0,$C2,$C1,$C3 ; $B0
-	.db $2C,$2E,$2D,$2F ; $B4
-	.db $8E,$8F,$8F,$8E ; $B8
-	.db $88,$8A,$89,$8B ; $BC
-	.db $89,$8B,$89,$8B ; $C0
-	.db $89,$8B,$8C,$8D ; $C4
-	.db $88,$8A,$8C,$8D ; $C8
-	.db $88,$8A,$89,$8B ; $CC
-	.db $88,$8A,$89,$8B ; $D0
-	.db $6A,$6C,$6B,$6D ; $D4
-	.db $6C,$6C,$6D,$6D ; $D8
-	.db $6C,$6E,$6D,$6F ; $DC
-	.db $6C,$54,$6D,$55 ; $E0
-	.db $32,$34,$33,$35 ; $E4
-	.db $33,$35,$33,$35 ; $E8
-
-UnusedTileQuads3:
-	.db $94,$95,$94,$95 ; $00
-	.db $96,$97,$96,$97 ; $04
-	.db $48,$49,$48,$49 ; $08
-	.db $FE,$FE,$FE,$FE ; $0C
-	.db $FB,$32,$32,$33 ; $10
-	.db $33,$33,$33,$33 ; $14
-	.db $FD,$FD,$FD,$FD ; $18
-	.db $34,$FB,$FD,$34 ; $1C
-	.db $FB,$30,$FB,$FB ; $20
-	.db $FB,$FB,$31,$FB ; $24
-	.db $D0,$D0,$D0,$D0 ; $28
-	.db $D1,$D1,$D1,$D1 ; $2C
-	.db $64,$66,$65,$67 ; $30
-	.db $68,$6A,$69,$6B ; $34
-	.db $FA,$6C,$FA,$6C ; $38
-	.db $6D,$FA,$6D,$FA ; $3C
-	.db $92,$93,$93,$92 ; $40
-	.db $AE,$AF,$AE,$AF ; $44
-	.db $78,$7A,$79,$7B ; $48
-	.db $A8,$A8,$AF,$AE ; $4C
-	.db $94,$95,$94,$95 ; $50
-	.db $96,$97,$96,$97 ; $54
-	.db $22,$24,$23,$25 ; $58
-	.db $92,$93,$93,$92 ; $5C
-	.db $50,$51,$50,$51 ; $60
-	.db $AE,$AF,$AE,$AF ; $64
-	.db $50,$51,$50,$51 ; $68
-	.db $8E,$8F,$8F,$8E ; $6C
-	.db $72,$73,$73,$72 ; $70
-	.db $50,$52,$51,$53 ; $74
-	.db $FD,$FD,$FD,$FD ; $78
-	.db $FB,$36,$36,$4F ; $7C
-	.db $4F,$4E,$4E,$4F ; $80
-	.db $4E,$4F,$4F,$4E ; $84
-	.db $92,$93,$93,$92 ; $88
-	.db $8E,$8F,$8F,$8E ; $8C
-	.db $44,$45,$45,$44 ; $90
-	.db $4F,$37,$4E,$FE ; $94
-	.db $4F,$3A,$4E,$FE ; $98
-	.db $4F,$4E,$37,$38 ; $9C
-	.db $4A,$4B,$FE,$FE ; $A0
-	.db $72,$73,$4A,$4B ; $A4
-	.db $40,$42,$41,$43 ; $A8
-	.db $41,$43,$41,$43 ; $AC
-
-UnusedTileQuads4:
-	.db $40,$42,$41,$43 ; $00
-	.db $40,$42,$41,$43 ; $04
-	.db $BA,$BC,$BB,$BD ; $08
-	.db $BA,$BC,$90,$91 ; $0C
-	.db $FA,$FA,$FA,$FA ; $10
-	.db $FA,$FA,$FA,$FA ; $14
-	.db $FD,$FD,$FD,$FD ; $18
-	.db $61,$63,$61,$63 ; $1C
-	.db $65,$63,$65,$63 ; $20
-	.db $65,$67,$65,$67 ; $24
-	.db $60,$62,$61,$63 ; $28
-	.db $32,$34,$33,$35 ; $2C
-	.db $64,$62,$65,$63 ; $30
-	.db $36,$34,$37,$35 ; $34
-	.db $64,$66,$65,$67 ; $38
-	.db $36,$38,$37,$39 ; $3C
-	.db $68,$62,$61,$63 ; $40
-	.db $64,$69,$65,$67 ; $44
-	.db $46,$62,$61,$63 ; $48
-	.db $64,$47,$65,$67 ; $4C
-	.db $BA,$BC,$BB,$BD ; $50
-	.db $70,$72,$71,$73 ; $54
-	.db $8E,$8F,$8F,$8E ; $58
-	.db $72,$73,$73,$72 ; $5C
-	.db $44,$45,$45,$44 ; $60
-
-; -----
-
 
 ;
 ; ## Object creation routine selection
@@ -919,13 +664,8 @@ CreateObjects_30thruF0:
 	.dw CreateObject_VerticalBlocks ; $8X
 	.dw CreateObject_VerticalBlocks ; $9X
 	.dw CreateObject_VerticalBlocks ; $AX
-IFNDEF ENABLE_LEVEL_OBJECT_MODE
 	.dw CreateObject_WhaleOrDrawBridgeChain ; $BX
 	.dw CreateObject_JumpthroughPlatform ; $CX
-ELSE
-	.dw CreateObject_Platform_BX ; $BX
-	.dw CreateObject_Platform_CX ; $CX
-ENDIF
 	.dw CreateObject_HorizontalPlatform ; $DX
 	.dw CreateObject_HorizontalPlatform ; $EX
 	.dw CreateObject_WaterfallOrFrozenRocks ; $FX
@@ -944,11 +684,7 @@ CreateObjects_00:
 	.dw CreateObject_SingleBlock ; $02
 	.dw CreateObject_SingleBlock ; $03
 	.dw CreateObject_SingleBlock ; $04
-IFNDEF LEVEL_ENGINE_UPGRADES
 	.dw CreateObject_SingleBlock ; $05
-ELSE
-	.dw CreateObject_StandableAutomatic ; $05
-ENDIF
 	.dw CreateObject_Vase ; $06
 	.dw CreateObject_Vase ; $07
 	.dw CreateObject_Vase ; $08
@@ -1102,108 +838,6 @@ World7ObjectTiles:
 ; such as drawing an _n_-tile row or column of tile _x_. Many fall somewhere in-between.
 ;
 
-IFDEF LEVEL_ENGINE_UPGRADES
-;
-; #### Automatic climbable tile generation
-;
-ClimbableTileSearch:
-	.db BackgroundTile_LadderShadow
-	.db BackgroundTile_Ladder
-	.db BackgroundTile_Chain
-	.db BackgroundTile_Vine
-
-ClimbableTilePlatform:
-	.db BackgroundTile_LadderStandableShadow
-	.db BackgroundTile_LadderStandable
-	.db BackgroundTile_ChainStandable
-	.db BackgroundTile_VineStandable
-
-
-;
-; Find the corresponding climbable tile
-;
-; ##### Input
-; - `A`: search tile
-;
-; ##### Output
-; - `A`: replace tile
-; - `C`: set if a match was found
-;
-FindClimableTile:
-	STX byte_RAM_7
-	LDX #(ClimbableTilePlatform - ClimbableTileSearch - 1)
-
-FindClimableTile_Loop:
-	CMP ClimbableTileSearch, X
-	BEQ FindClimableTile_LoadReplacement
-
-	DEX
-	BPL FindClimableTile_Loop
-
-	LDX byte_RAM_7
-	CLC
-	RTS
-
-FindClimableTile_LoadReplacement:
-	LDA ClimbableTilePlatform, X
-	LDX byte_RAM_7
-	RTS
-
-;
-; Creates a climbable tile that you can stand on based on ObjectTypeAXthruFX
-;
-; ##### Output
-; - `A`: tile that was written
-;
-CreateObject_StandableObjectType:
-	LDA ObjectTypeAXthruFX
-	BEQ CreateObject_StandableObjectType_TableOffset
-
-	; Offset for shadow
-	CLC
-	ADC #$04
-
-CreateObject_StandableObjectType_TableOffset:
-	; Offset to ladder/chain object definition
-	ADC #$1C
-	TAX
-
-	LDY byte_RAM_E7
-	STX byte_RAM_7
-	STY byte_RAM_8
-	LDX CurrentWorldTileset
-	LDA WorldObjectTilePointersLo, X
-	STA byte_RAM_C
-	LDA WorldObjectTilePointersHi, X
-	STA byte_RAM_D
-	LDY byte_RAM_7
-	LDA (byte_RAM_C), Y
-	LDY byte_RAM_8
-	LDX byte_RAM_7
-
-	JSR FindClimableTile
-
-	STA (byte_RAM_1), Y
-	RTS
-
-;
-; Creates a climbable tile that you can stand on based on the based on the tile underneath.
-;
-; ##### Output
-; - `A`: tile that was written
-;
-CreateObject_StandableAutomatic:
-	LDY byte_RAM_E7
-	LDA (byte_RAM_1), Y
-
-	JSR FindClimableTile
-	BCC CreateObject_StandableObjectType
-
-	STA (byte_RAM_1), Y
-	RTS
-ENDIF
-
-
 ;
 ; Places a tile using the world-specific tile lookup table.
 ;
@@ -1336,7 +970,6 @@ CreateObject_LightEntranceRight_NotWorld6:
 	LDA #BackgroundTile_LightTrailRight
 	STA (byte_RAM_1), Y
 
-IFNDEF DISABLE_DOOR_POINTERS
 	LDA CurrentWorld
 	CMP #$05
 	BEQ CreateObject_LightEntranceRight_World6or7Exit
@@ -1346,7 +979,6 @@ IFNDEF DISABLE_DOOR_POINTERS
 	BEQ CreateObject_LightEntranceRight_World6or7Exit
 
 	JSR LevelParser_EatDoorPointer
-ENDIF
 
 CreateObject_LightEntranceRight_World6or7Exit:
 	RTS
@@ -1420,7 +1052,6 @@ CreateObject_LightEntranceLeft:
 	LDA #BackgroundTile_LightTrailLeft
 	STA (byte_RAM_1), Y
 
-IFNDEF DISABLE_DOOR_POINTERS
 	LDA CurrentWorld
 	CMP #$05
 	BEQ CreateObject_LightEntranceLeft_World6or7Exit
@@ -1430,7 +1061,6 @@ IFNDEF DISABLE_DOOR_POINTERS
 	BEQ CreateObject_LightEntranceLeft_World6or7Exit
 
 	JSR LevelParser_EatDoorPointer
-ENDIF
 
 CreateObject_LightEntranceLeft_World6or7Exit:
 	RTS
@@ -1463,7 +1093,6 @@ CreateObject_LightEntranceLeft_World6or7Exit:
 CreateObject_VerticalBlocks:
 	LDY byte_RAM_E7
 
-IFNDEF LEVEL_ENGINE_UPGRADES
 	LDA byte_RAM_50E
 	CMP #$06
 	BNE CreateObject_VerticalBlocks_NotClawGrip
@@ -1485,31 +1114,13 @@ CreateObject_VerticalBlocks_ClawGripRockLoop:
 	BPL CreateObject_VerticalBlocks_ClawGripRockLoop
 
 	RTS
-ENDIF
 
 CreateObject_VerticalBlocks_NotClawGrip:
 	LDA byte_RAM_50E
 	CMP #$06
 	BNE CreateObject_VerticalBlocks_Normal
 
-IFNDEF LEVEL_ENGINE_UPGRADES
 	LDA #BackgroundTile_RockWallAngle
-ELSE
-	;
-	; Use the previous tile for the top of the column UNLESS we're using a sky
-	; tile or have set an object type for in the level header.
-	;
-	; This supports creating a normal vertical block run for $9X as well as the
-	; special rock wall with an angled top.
-	;
-	LDX ObjectType3Xthru9X
-	BNE CreateObject_VerticalBlocks_Normal
-	JSR CreateWorldSpecificTile
-	CMP #BackgroundTile_Sky
-	BEQ CreateObject_VerticalBlocks_NextRow
-	CLC
-	SBC #$00
-ENDIF
 	STA (byte_RAM_1), Y
 	JMP CreateObject_VerticalBlocks_NextRow
 
@@ -1665,15 +1276,9 @@ GreenPlatformOverwriteTiles:
 	.db BackgroundTile_Sky
 	.db BackgroundTile_WaterfallTop
 	.db BackgroundTile_Waterfall
-IFDEF LEVEL_ENGINE_UPGRADES
-	.db BackgroundTile_WaterfallSplash
-	.db BackgroundTile_Water
-	.db BackgroundTile_WaterTop
-ENDIF
 GreenPlatformTiles_End:
 
 
-IFNDEF ENABLE_LEVEL_OBJECT_MODE
 ;
 ; Draws the typical green hill platforms in Worlds 1 through 6 or the mushroom
 ; house platforms in World 7.
@@ -1684,17 +1289,6 @@ CreateObject_JumpthroughPlatform:
 	BNE CreateObject_GreenJumpthroughPlatform
 
 	JMP CreateObject_MushroomJumpthroughPlatform
-ELSE
-CreateObject_Platform_CX:
-	LDA LevelObjectMode
-	JSR JumpToTableAfterJump
-
-	.dw CreateObject_GreenJumpthroughPlatform
-	.dw CreateObject_GreenJumpthroughPlatform
-	.dw CreateObject_Whale
-	.dw CreateObject_MushroomJumpthroughPlatform
-ENDIF
-
 
 ;
 ; #### Green platforms
@@ -2140,10 +1734,6 @@ SingleObjects:
 	.db BackgroundTile_Phanto ; $2C
 	.db BackgroundTile_SubspaceMushroom2 ; $2D
 	.db BackgroundTile_WhaleEye ; $2E
-	; No entry for $2F in this table, so it uses tile $A4 due to the LDY below
-IFDEF EXPAND_TABLES
-	.db BackgroundTile_SolidWood ; $2F
-ENDIF
 
 
 ;
@@ -2226,13 +1816,11 @@ WaterfallTiles:
 
 
 CreateObject_WaterfallOrFrozenRocks:
-IFNDEF ENABLE_LEVEL_OBJECT_MODE
 	LDA CurrentWorldTileset
 	CMP #$03
 	BNE CreateObject_Waterfall
 
 	JMP CreateObject_FrozenRocks
-ENDIF
 
 CreateObject_Waterfall:
 	LDA #$00
@@ -2269,50 +1857,6 @@ CreateObject_Waterfall_InnerLoop:
 
 CreateObject_Waterfall_Exit:
 	RTS
-
-
-IFDEF ENABLE_LEVEL_OBJECT_MODE
-WaterTiles:
-	.db BackgroundTile_WaterTop
-	.db BackgroundTile_Water
-
-CreateObject_Water:
-	LDA #$00
-	STA byte_RAM_8
-
-CreateObject_Water_OuterLoop:
-	LDY byte_RAM_E7
-	LDX byte_RAM_E8
-	JSR SetAreaPageAddr_Bank6
-
-	LDY byte_RAM_E7
-	LDA byte_RAM_50D
-	STA byte_RAM_7
-	LDX byte_RAM_8
-
-CreateObject_Water_InnerLoop:
-	LDA WaterTiles, X
-	STA (byte_RAM_1), Y
-	JSR IncrementAreaXOffset
-
-	DEC byte_RAM_7
-	BPL CreateObject_Water_InnerLoop
-
-	LDA #$01
-	STA byte_RAM_8
-	LDA byte_RAM_E7
-	CLC
-	ADC #$10
-	CMP #$F0
-	BCS CreateObject_Water_Exit
-
-	STA byte_RAM_E7
-	JMP CreateObject_Water_OuterLoop
-
-CreateObject_Water_Exit:
-	RTS
-ENDIF
-
 
 CreateObject_Pyramid:
 	LDY byte_RAM_E7
@@ -2550,23 +2094,12 @@ CreateObject_WhaleRow_Right:
 	RTS
 
 
-IFNDEF ENABLE_LEVEL_OBJECT_MODE
 CreateObject_WhaleOrDrawBridgeChain:
 	LDA CurrentWorldTileset
 	CMP #$06
 	BNE CreateObject_Whale
 
 	JMP CreateObject_DrawBridgeChain
-ELSE
-CreateObject_Platform_BX:
-	LDA LevelObjectMode
-	JSR JumpToTableAfterJump
-
-	.dw CreateObject_Water
-	.dw CreateObject_FrozenRocks
-	.dw CreateObject_FrozenRocks
-	.dw CreateObject_DrawBridgeChain
-ENDIF
 
 ;
 ; Draws a whale.
@@ -2844,18 +2377,6 @@ CreateObject_TreeBackground_MiddleLoop:
 
 	RTS
 
-
-; Unreferenced?
-SomeUnusedTilesTop:
-	.db BackgroundTile_LightDoor
-	.db BackgroundTile_CactusTop
-	.db BackgroundTile_PalmTreeTop
-SomeUnusedTilesBottom:
-	.db BackgroundTile_LightDoor
-	.db BackgroundTile_CactusMiddle
-	.db BackgroundTile_PalmTreeTrunk
-
-
 ;
 ; This 3x9 tile entrance is used in 6-3
 ;
@@ -2981,7 +2502,6 @@ CreateObject_Door_Unlocked:
 	LDA DoorBottomTiles, X
 	STA (byte_RAM_1), Y
 
-IFNDEF DISABLE_DOOR_POINTERS
 	;
 	; For Worlds 1-5, the object after a door is used as an area pointer.
 	;
@@ -3010,7 +2530,6 @@ IFNDEF DISABLE_DOOR_POINTERS
 	BEQ CreateObject_Door_Exit
 
 	JSR LevelParser_EatDoorPointer
-ENDIF
 
 CreateObject_Door_Exit:
 	RTS
@@ -3095,7 +2614,7 @@ CreateObject_MushroomJumpthroughPlatform_Loop:
 	STA byte_RAM_E7
 	LDA #$0D
 	STA byte_RAM_50E
-	LDA_abs byte_RAM_7
+	LDA byte_RAM_7
 
 	STA byte_RAM_50D
 	LDX byte_RAM_E8
@@ -3227,12 +2746,6 @@ CreateObject_DrawBridgeChain_Loop:
 
 	RTS
 
-
-IFNDEF EXPAND_TABLES
-; Unused space in the original ($9126 - $91FF)
-unusedSpace $9200, $FF
-ENDIF
-
 ;
 ; ## Ground setting data
 ;
@@ -3296,9 +2809,6 @@ HorizontalGroundSetData:
 
 	; Based on the level header parsing code, $1F seems like it may have been reserved for some
 	; special behavior at some point, but it doesn't appear to be implemented.
-IFDEF EXPAND_TABLES
-	.db %00000000,%00000000,%00000000,%00100100 ; $1F
-ENDIF
 
 ;
 ; #### Vertical ground set data
@@ -3349,10 +2859,6 @@ VerticalGroundSetData:
 	.db %00000000,%00000000,%00000000,%00001010 ; $1E
 	; Based on the level header parsing code, %00011111 seems like it may have been reserved for some
 	; special behavior at some point, but it doesn't appear to be implemented.
-IFDEF EXPAND_TABLES
-	.db %00000000,%00000000,%00000000,%00001010 ; $1F
-ENDIF
-
 
 ;
 ; Lookup tables for decoded level data by page
@@ -3402,12 +2908,7 @@ SubspaceTilesSearch:
 	.db $CA ; $02
 	.db $CE ; $03
 	.db $C7 ; $04
-IFNDEF FIX_SUBSPACE_TILES
-	.db $C8 ; $05 ; BUG: This should be $C9
-ENDIF
-IFDEF FIX_SUBSPACE_TILES
 	.db $C9 ; $05
-ENDIF
 	.db $D0 ; $06
 	.db $D1 ; $07
 	.db $01 ; $08
@@ -3430,12 +2931,7 @@ SubspaceTilesReplace:
 	.db $75 ; $01
 	.db $CE ; $02
 	.db $CA ; $03
-IFNDEF FIX_SUBSPACE_TILES
-	.db $C8 ; $04 ; BUG: This should be $C9
-ENDIF
-IFDEF FIX_SUBSPACE_TILES
 	.db $C9 ; $04
-ENDIF
 	.db $C7 ; $05
 	.db $D1 ; $06
 	.db $D0 ; $07
@@ -3492,7 +2988,7 @@ ResetLevelData_Loop:
 	STA ScreenYLo
 	STA ScreenBoundaryLeftHi
 	STA ScreenBoundaryLeftLo
-	STA_abs NeedsScroll
+	STA NeedsScroll
 	RTS
 
 
@@ -3653,6 +3149,11 @@ ApplyPalette_SkyLoop:
 
 
 GenerateSubspaceArea:
+IFDEF GS_MUSIC
+	LDY #0
+	STY iHold1
+	STY iHold2
+ENDIF
 	LDA CurrentLevelArea
 	STA CurrentLevelAreaCopy
 	LDA #$30 ; subspace palette (works like area header byte)
@@ -3850,59 +3351,15 @@ LoadAreaMusic:
 	CMP #$08
 	BCS LoadAreaMusic_Exit
 
+IFNDEF GS_MUSIC
 	LDA #Music2_StopMusic
 	STA MusicQueue2
+ELSE
+	JMP InitSound
+ENDIF
 
 LoadAreaMusic_Exit:
 	RTS
-
-
-;
-; Unreferenced? A similar routine exists in Bank F, so it seems like this may
-; be leftover code from a previous version.
-;
-Unused_LevelMusicIndexes:
-	.db Music1_Overworld
-	.db Music1_Inside
-	.db Music1_Boss
-	.db Music1_Wart
-	.db Music1_Subspace
-
-Unused_ChangeAreaMusic:
-	LDA CompareMusicIndex
-	CMP CurrentMusicIndex
-	BEQ Unused_ChangeAreaMusic_Exit
-
-	TAX
-	STX CurrentMusicIndex
-	LDA StarInvincibilityTimer
-	CMP #$08
-	BCS LoadAreaMusic_Exit
-
-	LDA Unused_LevelMusicIndexes, X
-	STA MusicQueue1
-
-Unused_ChangeAreaMusic_Exit:
-	RTS
-
-; Unreferenced?
-	LDA CurrentLevelPage
-	ASL A
-	TAY
-	LDA AreaPointersByPage, Y
-	STA CurrentLevel
-	INY
-	LDA AreaPointersByPage, Y
-	LSR A
-	LSR A
-	LSR A
-	LSR A
-	STA CurrentLevelArea
-	LDA AreaPointersByPage, Y
-	AND #$0F
-	STA CurrentLevelEntryPage
-	RTS
-
 
 ;
 ; ## Area loading and rendering
@@ -3932,29 +3389,13 @@ LoadCurrentArea:
 	;
 	LDY #$03
 	LDA (byte_RAM_5), Y
-IFNDEF LEVEL_ENGINE_UPGRADES
 	LSR A
 	AND #%00011100
-ELSE
-	; double available ground types
-	AND #%11110000
-	LSR A
-	LSR A
-ENDIF
 
 	STA GroundType
 
 	; This doesn't hurt, but shouldn't be necessary.
 	JSR RestoreLevelDataCopyAddress
-
-IFDEF ENABLE_LEVEL_OBJECT_MODE
-	; Read level object mode.
-	LDA (byte_RAM_5), Y
-	LSR A
-	LSR A
-	AND #%00000011
-	STA LevelObjectMode
-ENDIF
 
 	; Determine whether this area is Horizontal or vertical.
 	LDY #$00
@@ -3988,21 +3429,6 @@ ENDIF
 	AND #%00000011
 	STA ObjectTypeAXthruFX
 	DEY
-
-IFDEF AREA_HEADER_TILESET
-	; World tileset to use for the area.
-	LDA (byte_RAM_5), Y
-	ROL A
-	ROL A
-	ROL A
-	ROL A
-	AND #%00000111
-	CMP #$07 ; only $00-06 are valid, force $07 to CurrentWorld
-	BCC LoadCurrentArea_IsValid
-	LDA CurrentWorld
-LoadCurrentArea_IsValid:
-	STA CurrentWorldTileset
-ENDIF
 
 	; Load initial ground setting, which determines the shape of the ground layout.
 	;
@@ -4260,9 +3686,7 @@ ProcessSpecialObjectForeground:
 	.dw ResetPageAndOffsetForeground ; New object layer
 	.dw SetAreaPointer ; Area pointer
 	.dw EatLevelObject1Byte ; Ground appearance
-IFDEF LEVEL_ENGINE_UPGRADES
-	.dw CreateRawTiles
-ENDIF
+
 
 
 ;
@@ -4278,9 +3702,7 @@ ProcessSpecialObjectBackground:
 	.dw ResetPageAndOffsetBackground ; New object layer
 	.dw SetAreaPointerNoOp ; Area pointer
 	.dw SetGroundType ; Ground appearance
-IFDEF LEVEL_ENGINE_UPGRADES
-	.dw CreateRawTilesNoOp
-ENDIF
+
 
 
 ;
@@ -4328,14 +3750,6 @@ SkipForwardPage1Background:
 	RTS
 
 ;
-; Advances two bytes in the level data.
-;
-; Unreferenced?
-;
-EatLevelObject2Bytes:
-	INC byte_RAM_F
-
-;
 ; Advances one byte in the level data.
 ;
 EatLevelObject1Byte:
@@ -4369,114 +3783,6 @@ SetAreaPointer:
 	STA AreaPointersByPage, X
 	STY byte_RAM_F
 	RTS
-
-
-IFDEF LEVEL_ENGINE_UPGRADES
-;
-; #### Special Object `$F7`
-;
-; Creates a run of 1-16 arbitrary tiles.
-;
-; #### Usage: `$F7 $YX $WL ...`
-; - `Y`: relative Y offset on page
-; - `X`: X position on page
-; - `W`: wrap width (eg. 0 for no wrap, 2 for 2-tiles wide, etc.)
-; - `L`: run length, L+1 subsequent bytes are the raw tiles
-;
-CreateRawTiles:
-	LDY byte_RAM_F
-
-	; setting the page address allows this to be the first object of an area
-	LDX byte_RAM_E8
-	JSR SetAreaPageAddr_Bank6
-
-	INY
-	; read tile placement offset
-	LDA (byte_RAM_5), Y
-	CLC
-	ADC byte_RAM_E6 ; add current offset
-	STA byte_RAM_E7 ; target tile placement offset
-
-	; apply page Y offset
-	LDA (byte_RAM_5), Y
-	AND #$F0
-	JSR UpdateAreaYOffset
-
-	INY
-	; read run length
-	LDA (byte_RAM_5), Y
-	AND #$0F
-	STA byte_RAM_50D
-
-	; read wrap length
-	LDA (byte_RAM_5), Y
-	LSR A
-	LSR A
-	LSR A
-	LSR A
-	STA byte_RAM_50E
-
-	; start counting from 0
-	LDX #$00
-
-	; everything afterwards is raw data
-CreateRawTiles_Loop:
-	; increment and stash Y
-	INY
-	TYA
-	PHA
-
-	; write the next tile
-	LDA (byte_RAM_5), Y
-	LDY byte_RAM_E7
-	STA (byte_RAM_1), Y
-
-	; increment x-position (crossing page as necessary)
-	JSR IncrementAreaXOffset
-	STY byte_RAM_E7
-
-	; are we wrapping this run of tiles?
-	LDA byte_RAM_50E
-	BEQ CreateRawTiles_NoWrap
-
-	; increment y-position if we hit the wrap point
-	TXA
-	CLC
-	ADC #$01
-CreateRawTiles_CheckWrap:
-	SEC
-	SBC byte_RAM_50E
-	BMI CreateRawTiles_NoWrap
-	BNE CreateRawTiles_CheckWrap
-
-CreateRawTiles_Wrap:
-	TXA
-	PHA
-	JSR IncrementAreaYOffset
-	SEC
-	SBC byte_RAM_50E
-	TAY
-	STY byte_RAM_E7
-	PLA
-	TAX
-
-CreateRawTiles_NoWrap:
-	; restore Y and iterate
-	PLA
-	TAY
-
-	CPX byte_RAM_50D
-	INX
-	BCC CreateRawTiles_Loop
-
-	; update level data offset
-	STY byte_RAM_F
-
-CreateRawTilesNoOp:
-	RTS
-ENDIF
-
-
 ;
 ; Use top 3 bits for the X offset of a ground setting object
 ;
@@ -5046,7 +4352,6 @@ IncrementAreaYOffset_Exit:
 	RTS
 
 
-IFNDEF DISABLE_DOOR_POINTERS
 ;
 ; Consume the object as an area pointer. This overwrites any existing area
 ; pointer for this page.
@@ -5069,7 +4374,6 @@ LevelParser_EatDoorPointer:
 	LDA byte_RAM_8
 	STA AreaPointersByPage, Y
 	RTS
-ENDIF
 
 ;
 ; High byte of the PPU scroll offset for nametable B.

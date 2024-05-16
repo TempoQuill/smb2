@@ -566,6 +566,9 @@ CastRoll_ScrollSprites_AfterSpriteCounter:
 	.dw loc_BANKC_8A37
 	.dw CastRoll_TheEndDelay
 	.dw CastRoll_TheEndAnimation
+IFDEF GS_MUSIC
+	.dw CastRoll_NewSong
+ENDIF
 
 	RTS
 
@@ -2592,3 +2595,13 @@ byte_BANKC_93A6:
 	.db $7A
 	.db $C8
 	.db $60
+
+IFDEF GS_MUSIC
+CastRoll_NewSong:
+	LDY #0
+	JSR PlayMusic
+	LDY #MUSIC_POST_CREDITS
+	JSR PlayMusic
+	INC CastRollSequenceIndex
+	RTS
+ENDIF

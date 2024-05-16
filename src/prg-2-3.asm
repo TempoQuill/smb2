@@ -68,12 +68,6 @@ AreaInitialization:
 	STA QuicksandDepth
 	STA BossBeaten
 
-IFDEF RESET_CHR_LATCH
-	LDY #$FF
-	STY BossTileset
-	INC ResetCHRLatch
-ENDIF
-
 	LDY #$1B
 AreaInitialization_CarryYOffsetLoop:
 	; Copy the global carrying Y offsets to memory
@@ -82,10 +76,6 @@ AreaInitialization_CarryYOffsetLoop:
 	STA ItemCarryYOffsetsRAM, Y
 	DEY
 	BPL AreaInitialization_CarryYOffsetLoop
-
-IFDEF CONTROLLER_2_DEBUG
-	JSR CopyCarryYOffsets
-ENDIF
 
 	; Copy the character-specific FINAL carrying heights into memory
 	LDY CurrentCharacter
@@ -106,7 +96,11 @@ ENDIF
 	ORA CurrentLevel
 	BNE AreaInitialization_CheckObjectCarriedOver
 
+IFNDEF GS_MUSIC
 	LDA #SoundEffect2_IntroFallSlide
+ELSE
+	LDA #SFX_MASTER_BALL
+ENDIF
 	STA SoundEffectQueue2
 
 AreaInitialization_CheckObjectCarriedOver:
@@ -280,10 +274,6 @@ AreaInitialization_HorizontalArea_Next:
 AreaMainRoutine_Gameplay:
 	JSR CheckObjectSpawnBoundaries
 
-IFDEF RESET_CHR_LATCH
-	JSR CheckResetCHRLatch
-ENDIF
-
 	LDA StopwatchTimer
 	BEQ AreaMainRoutine_CalculateScreenBoundaryRight
 
@@ -292,8 +282,13 @@ ENDIF
 	AND #%00011111
 	BNE AreaMainRoutine_DecrementStopwatch
 
+IFNDEF GS_MUSIC
 	LDY #SoundEffect1_StopwatchTick
 	STY SoundEffectQueue1
+ELSE
+	LDY #SFX_SHINE
+	JSR PlaySFX
+ENDIF
 
 AreaMainRoutine_DecrementStopwatch:
 	LSR A
@@ -1032,7 +1027,15 @@ HandleEnemyState_Dead_BossBeaten:
 
 	JSR Swarm_Stop
 
+IFNDEF GS_MUSIC
 	LDA #Music2_BossClearFanfare
+ELSE
+	LDA #$80
+	STA iHold1
+	LDA #1
+	STA iHold2
+	LDA #MUSIC_POKEMON_CHANNEL
+ENDIF
 	STA MusicQueue2
 	LDA EndOfLevelDoorPage, X
 	STA ObjectXHi, X
@@ -2743,7 +2746,11 @@ loc_BANK2_8D7B:
 	DEC HawkmouthOpenTimer
 	BNE loc_BANK2_8D78
 
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_HawkOpen_WartBarf
+ELSE
+	LDA #SFX_CUT
+ENDIF
 	STA SoundEffectQueue1
 
 loc_BANK2_8D8A:
@@ -2944,13 +2951,6 @@ TrouterJumpVelocityY:
 	.db $CC ; $9
 	.db $D2 ; $A
 	.db $D8 ; $B
-; They didn't even bother this close to the bottom of the screen!
-IFDEF EXPAND_TABLES
-	.db $DF ; $C
-	.db $E6 ; $D
-	.db $EF ; $E
-	.db $F8 ; $F
-ENDIF
 
 TrouterMaxY:
 	.db $92 ; vertical level
@@ -3293,11 +3293,6 @@ EnemyBehavior_SpitProjectile:
 loc_BANK2_901B:
 	JMP RenderSprite
 
-
-; Unused?
-	.db $18
-	.db $E8
-
 ; Maps upper nybble of y-velocity to a corresponding bounce velocity
 ObjectBounceVelocityY:
 	.db $FE
@@ -3313,7 +3308,11 @@ EnemyBehavior_Coin:
 	CMP #$EA
 	BNE EnemyBehavior_Mushroom1up
 
+IFNDEF GS_MUSIC
 	LDA #SoundEffect2_CoinGet
+ELSE
+	LDA #SFX_GET_COIN_FROM_SLOTS
+ENDIF
 	STA SoundEffectQueue2
 
 EnemyBehavior_Mushroom1up:
@@ -3380,8 +3379,13 @@ EnemyBehavior_Mushroom_PickUp:
 	LDA CrystalAndHawkmouthOpenSize
 	BNE EnemyBehavior_CrystalBall_Exit
 
+IFNDEF GS_MUSIC
 	LDA #Music2_CrystalGetFanfare
 	STA MusicQueue2
+ELSE
+	LDA #SFX_CAUGHT_MON
+	STA SoundEffectQueue1
+ENDIF
 	LDA #$60
 	STA HawkmouthOpenTimer
 	INC CrystalAndHawkmouthOpenSize
@@ -3406,9 +3410,15 @@ EnemyBehavior_PickUpMushroom:
 	INC PlayerMaxHealth
 	JSR RestorePlayerToFullHealth
 
+IFNDEF GS_MUSIC
 	LDA #Music2_MushroomGetJingle
 	STA MusicQueue2
 	RTS
+ELSE
+	LDA #SFX_KEY_ITEM
+	STA SoundEffectQueue1
+	RTS
+ENDIF
 
 EnemyBehavior_PickUpMushroom1up:
 	LDA #$09
@@ -3496,7 +3506,11 @@ EnemyBehavior_Bomb_Explode:
 	LDA #$20
 	STA ObjectTimer1, X
 	STA SkyFlashTimer
+IFNDEF GS_MUSIC
 	LDA #DPCM_DoorOpenBombBom
+ELSE
+	LDA #SFX_EGG_BOMB
+ENDIF
 	STA DPCMQueue
 	LSR A
 	; A = $00
@@ -3584,8 +3598,13 @@ EnemyBehavior_SubspacePotion_CheckGroundCollision:
 	LDA IsHorizontalLevel
 	BNE EnemyBehavior_SubspacePotion_CreateDoor
 
+IFNDEF GS_MUSIC
 	LDA #DPCM_BossHurt
+ELSE
+	LDA #SFX_WRONG
+ENDIF
 	STA DPCMQueue
+
 	JSR EnemyDestroy
 
 EnemyBehavior_SubspacePotion_CreateDoor:
@@ -3779,12 +3798,6 @@ sub_BANK2_927A:
 	LSR A
 	ROR ObjectAttributes, X
 	RTS
-
-
-; Unused?
-	.db $D0
-	.db $03
-
 
 EnemyBehavior_BulletAndEgg:
 	JSR ObjectTileCollision
@@ -4374,12 +4387,7 @@ loc_BANK2_9528:
 	CPY #Enemy_NinjiRunning
 	BEQ sub_BANK2_9599
 
-	; this redundant red snifit check smells funny, almost like there was
-	; some other follow-the-player enemy
 	LDA #$7F ; unused
-	CPY #Enemy_SnifitRed
-	BEQ EnemyBehavior_Snifit
-
 	CPY #Enemy_SnifitRed
 	BEQ EnemyBehavior_Snifit
 
@@ -4694,12 +4702,6 @@ loc_BANK2_9686:
 	JSR SetSpriteTempScreenPosition
 
 	JMP RenderSprite
-
-
-; Unused?
-	.db $10
-	.db $F0
-
 
 EnemyBehavior_MushroomBlockAndPOW:
 	JSR sub_BANK2_9692
@@ -5046,82 +5048,6 @@ DoorSpriteAnimation:
 DoorSpriteAnimationEnd:
 	.db $00
 
-; Unused?
-	.db $A9
-	.db $02
-	.db $D0
-	.db $06
-
-
-;
-; Note: Door animation code copied from Bank 1
-;
-; It's here, but seems to be unused?
-;
-DoorAnimation_Locked_Bank2:
-	LDA #$01
-	BNE DoorAnimation_Bank2
-
-DoorAnimation_Unlocked_Bank2:
-	LDA #$00
-
-DoorAnimation_Bank2:
-	PHA
-	LDY #$08
-
-DoorAnimation_Loop_Bank2:
-	; skip if inactive
-	LDA EnemyState, Y
-	BEQ DoorAnimation_LoopNext_Bank2
-
-	LDA ObjectType, Y
-	CMP #Enemy_SubspaceDoor
-	BNE DoorAnimation_LoopNext_Bank2
-
-	LDA #EnemyState_PuffOfSmoke
-	STA EnemyState, Y
-	LDA #$20
-	STA ObjectTimer1, Y
-
-DoorAnimation_LoopNext_Bank2:
-	DEY
-	BPL DoorAnimation_Loop_Bank2
-
-	JSR CreateEnemy_TryAllSlots
-
-	BMI DoorAnimation_Exit_Bank2
-
-	LDA #$00
-	STA DoorAnimationTimer
-	STA SubspaceDoorTimer
-	LDX byte_RAM_0
-	PLA
-	STA EnemyArray_477, X
-	LDA #Enemy_SubspaceDoor
-	STA ObjectType, X
-	JSR SetEnemyAttributes
-
-	LDA PlayerXLo
-	ADC #$08
-	AND #$F0
-	STA ObjectXLo, X
-	LDA PlayerXHi
-	ADC #$00
-	STA ObjectXHi, X
-	LDA PlayerYLo
-	STA ObjectYLo, X
-	LDA PlayerYHi
-	STA ObjectYHi, X
-	LDA #ObjAttrib_Palette1 | ObjAttrib_16x32
-	STA ObjectAttributes, X
-	LDX byte_RAM_12
-	RTS
-
-DoorAnimation_Exit_Bank2:
-	PLA
-	RTS
-
-
 ShellSpeed:
 	.db $1C
 	.db $E4
@@ -5325,12 +5251,6 @@ KillOnscreenEnemies_CheckCollision:
 	LDA EnemyCollision, X
 	BEQ DestroyOnscreenEnemies_Next
 
-IFDEF FIX_POW_LOG_GLITCH
-	LDA ObjectType, X
-	CMP #Enemy_VegetableSmall
-	BCS KillOnscreenEnemies_SetCollision
-ENDIF
-
 	; BUG: For object that don't follow normal gravity rules, this will send
 	; them flying into the air, ie. throwing a POW block from a falling log
 	LDA #$D8
@@ -5375,24 +5295,31 @@ EnemyBehavior_CheckDamagedInterrupt_SoundEffect:
 	; is this enemy a squawker?
 	LDA EnemyArray_46E_Data, Y
 	AND #SpriteFlags46E_DeathSquawk
+IFNDEF GS_MUSIC
 	ASL A ; then A = DPCM_BossDeath
+ENDIF
 	BNE EnemyBehavior_CheckDamagedInterrupt_BossDeathSound
 
+IFNDEF GS_MUSIC
 	; normal enemy hit sound
 	LDA DPCMQueue
 	BNE EnemyBehavior_CheckDamagedInterrupt_CheckPidgit
 
 	LDA #SoundEffect1_EnemyHit
 	STA SoundEffectQueue1
+ELSE
+	JSR CheckSFX
+	BCS EnemyBehavior_CheckDamagedInterrupt_CheckPidgit
+	LDA #SFX_TACKLE
+	STA SoundEffectQueue1
+ENDIF
 	BNE EnemyBehavior_CheckDamagedInterrupt_CheckPidgit
 
 EnemyBehavior_CheckDamagedInterrupt_BossDeathSound:
-IFDEF EXPAND_MUSIC
-	; `DPCM_BossDeath` index changed, but want to preserve addresses
-	JSR EnemyBehavior_BossDeathSound
-ELSE
-	STA DPCMQueue
+IFDEF GS_MUSIC
+	LDA #SFX_FAINT
 ENDIF
+	STA DPCMQueue
 
 EnemyBehavior_CheckDamagedInterrupt_CheckPidgit:
 	; killing pidgit leaves a flying carpet behind
@@ -5561,9 +5488,6 @@ EnemyTilemap1:
 	; Spark
 	.db $A6, $A6 ; $B6
 	.db $AB, $AB ; $B8
-IFDEF EXPAND_TABLES
-	unusedSpace EnemyTilemap1 + $100, $FB
-ENDIF
 
 ;
 ; Enemy Animation table
@@ -6473,15 +6397,6 @@ EnemyBehavior_TurnAround:
 EnemyBehavior_TurnAroundExit:
 	JMP ApplyObjectPhysicsX
 
-
-IFDEF EXPAND_MUSIC
-EnemyBehavior_BossDeathSound:
-	LDA #DPCM_BossDeath
-	STA DPCMQueue
-	RTS
-ENDIF
-
-IFDEF FIX_FRYGUY_SPLIT_COUNT
 Fryguy_AccelerationX:
 	.db $01
 	.db $FF
@@ -6535,11 +6450,6 @@ Fryguy_IsMaxVelocityX_Left:
 	BCC Fryguy_IsMaxVelocity_Reverse
 	CLC
 	RTS
-ENDIF
-
-; Unused space in the original ($9EBD - $A02F)
-unusedSpace $A030, $FF
-
 
 EnemyTilemap2:
 ; Pidgit
@@ -6678,18 +6588,9 @@ EnemyTilemap2:
 	; Clawgrip Rock
 	.db $25, $27 ; $D6
 	.db $25, $27 ; $D8
-IFDEF EXPAND_TABLES
-	unusedSpace EnemyTilemap2 + $100, $FB
-ENDIF
-
 
 EnemyInit_Clawgrip:
 	JSR EnemyInit_Birdo
-
-IFDEF RESET_CHR_LATCH
-	LDA #$03
-	JSR SetBossTileset
-ENDIF
 
 	LDA #$04
 	STA EnemyHP, X
@@ -6868,7 +6769,7 @@ ClawgripRockHoistOffset:
 
 
 RenderSprite_Clawgrip:
-	LDA_abs byte_RAM_F4
+	LDA byte_RAM_F4
 
 	; store sprite slot
 	STA EnemyArray_B1, X
@@ -7017,7 +6918,7 @@ loc_BANK3_A2AA:
 	JSR ScreenSpriteClipping_Horizontal
 
 	LDY #$00
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 
 	LDA ObjectAttributes, X
 	PHA
@@ -7048,7 +6949,7 @@ loc_BANK3_A2D2:
 	AND #$04
 	BEQ loc_BANK3_A2E1
 
-	LDX_abs byte_RAM_F4
+	LDX byte_RAM_F4
 
 	DEC SpriteDMAArea + $C, X
 	LDX byte_RAM_12
@@ -7104,7 +7005,7 @@ loc_BANK3_A320:
 ; ---------------------------------------------------------------------------
 
 RenderSprite_ClawgripRock:
-	LDA_abs_X ObjectBeingCarriedTimer ;, X
+	LDA ObjectBeingCarriedTimer, X
 
 	ORA ObjectStunTimer, X
 	BNE loc_BANK3_A362
@@ -7236,7 +7137,7 @@ loc_BANK3_A3C7:
 	LDA Player1JoypadHeld
 	AND #ControllerInput_Right | ControllerInput_Left
 	TAY
-	AND_abs PlayerCollision
+	AND PlayerCollision
 
 	BNE loc_BANK3_A3E6
 
@@ -7497,7 +7398,7 @@ RenderSprite_Pidgit:
 	; Render Pidgit's carpet
 	JSR FindSpriteSlot
 
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 
 	LDA #ObjAttrib_Palette1 | ObjAttrib_Horizontal | ObjAttrib_16x32
 	STA ObjectAttributes, X
@@ -7553,11 +7454,6 @@ loc_BANK3_A55F:
 
 EnemyInit_Mouser:
 	JSR EnemyInit_Birdo
-
-IFDEF RESET_CHR_LATCH
-	LDA #$00
-	JSR SetBossTileset
-ENDIF
 
 	LDA #$02
 	LDY CurrentWorldTileset
@@ -7723,7 +7619,7 @@ RenderSprite_Mouser_Bomb:
 	STA SpriteTempScreenX
 	ASL byte_RAM_EE
 	LDY #$00
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 RenderSprite_Mouser_Bomb_Tile:
 	LDA #$38 ; could have been $34 from tilemap 1 instead
 	JSR RenderSprite_DrawObject
@@ -7890,11 +7786,6 @@ loc_BANK3_A71E:
 EnemyInit_Tryclyde:
 	JSR EnemyInit_Basic
 
-IFDEF RESET_CHR_LATCH
-	LDA #$01
-	JSR SetBossTileset
-ENDIF
-
 	LDA #$40
 	STA EnemyArray_477, X
 	LDA #$02
@@ -8010,7 +7901,7 @@ RenderSprite_Tryclyde:
 RenderSprite_Tryclyde_DrawBody:
 	TYA
 	LDY #$30
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 	JSR RenderSprite_DrawObject
 
 	LDA #ObjAttrib_Palette1 | ObjAttrib_FrontFacing
@@ -8435,8 +8326,13 @@ EnemyBehavior_CobratJar_Blocked:
 	STA EnemyState, X
 	LDA #$E0
 	STA ObjectYVelocity, X
+IFNDEF GS_MUSIC
 	LDA #DPCM_BossHurt
+ELSE
+	LDA #SFX_WRONG
+ENDIF
 	STA DPCMQueue
+
 
 EnemyBehavior_CobratJar_CheckReset:
 	LDA EnemyVariable, X
@@ -8700,7 +8596,7 @@ EnemyBehavior_Rocket_ApplyPhysics:
 	LDA #TransitionType_Rocket
 	STA TransitionType
 	LDA #$00
-	STA_abs PlayerState
+	STA PlayerState
 
 	RTS
 
@@ -8853,7 +8749,7 @@ loc_BANK3_AC4B:
 
 	JSR FindSpriteSlot
 
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 	PLA
 	CLC
 	LDY byte_RAM_7
@@ -8873,11 +8769,6 @@ loc_BANK3_AC67:
 
 EnemyInit_Fryguy:
 	JSR EnemyInit_Basic
-
-IFDEF RESET_CHR_LATCH
-	LDA #$02
-	JSR SetBossTileset
-ENDIF
 
 	LDA #$04
 	STA EnemyHP, X
@@ -8904,29 +8795,6 @@ FryguySplit_InitOffsetY:
 	.db $0C
 	.db $0C
 
-IFNDEF FIX_FRYGUY_SPLIT_COUNT
-Fryguy_AccelerationX:
-	.db $01
-	.db $FF
-
-Fryguy_MaxVelocityX:
-	.db $2A
-	.db $D6
-
-Fryguy_AccelerationY:
-	.db $01
-	.db $FF
-
-Fryguy_MaxVelocityY:
-	.db $18
-	.db $E8
-ELSE
-	NOP
-	NOP
-	NOP
-	NOP
-ENDIF
-
 ;
 ; Fryguy's motion is oscillation based on accelerating in alternate directions
 ; to a max velocity either way
@@ -8940,16 +8808,11 @@ EnemyBehavior_Fryguy:
 	BNE EnemyBehavior_Fryguy_MaybeCreateFireball
 
 EnemyBehavior_Fryguy_CreateSplit:
-IFDEF FIX_FRYGUY_SPLIT_COUNT
 	DEY ; Y=$FF
 	STY FryguySplitFlames
-ENDIF
 EnemyBehavior_Fryguy_CreateSplit_NumFlames:
 	LDA #$03
 	STA byte_RAM_9
-IFNDEF FIX_FRYGUY_SPLIT_COUNT
-	STA FryguySplitFlames
-ENDIF
 	JSR EnemyDestroy
 
 EnemyBehavior_Fryguy_CreateSplitLoop:
@@ -8957,9 +8820,7 @@ EnemyBehavior_Fryguy_CreateSplitLoop:
 
 	BMI EnemyBehavior_Fryguy_CreateSplit_Next
 
-IFDEF FIX_FRYGUY_SPLIT_COUNT
 	INC FryguySplitFlames
-ENDIF
 	LDY byte_RAM_0
 	LDA ObjectYHi, X
 	STA EndOfLevelDoorPage, Y
@@ -9028,13 +8889,8 @@ EnemyBehavior_Fryguy_AccelerationY:
 	ADC Fryguy_AccelerationY, Y
 	STA ObjectYVelocity, X
 
-IFNDEF FIX_FRYGUY_SPLIT_COUNT
-	CMP Fryguy_MaxVelocityY, Y
-	BNE EnemyBehavior_Fryguy_AccelerationX
-ELSE
 	JSR Fryguy_IsMaxVelocityY
 	BCC EnemyBehavior_Fryguy_AccelerationX
-ENDIF
 
 EnemyBehavior_Fryguy_AccelerationY_Reverse:
 	INC EnemyVariable, X
@@ -9049,13 +8905,8 @@ EnemyBehavior_Fryguy_AccelerationX:
 	ADC Fryguy_AccelerationX, Y
 	STA ObjectXVelocity, X
 
-IFNDEF FIX_FRYGUY_SPLIT_COUNT
-	CMP Fryguy_MaxVelocityX, Y
-	BNE EnemyBehavior_Fryguy_ApplyPhysics
-ELSE
 	JSR Fryguy_IsMaxVelocityX
 	BCC EnemyBehavior_Fryguy_ApplyPhysics
-ENDIF
 
 EnemyBehavior_Fryguy_AccelerationX_Reverse:
 	INC EnemyArray_477, X
@@ -9289,7 +9140,7 @@ loc_BANK3_AE5C:
 	LDA EnemyArray_B1, X
 	BNE loc_BANK3_AE7C
 
-	LDA_abs byte_RAM_F4
+	LDA byte_RAM_F4
 	PHA
 	LDA SpriteTempScreenY
 	CLC
@@ -9297,12 +9148,12 @@ loc_BANK3_AE5C:
 	STA SpriteTempScreenY
 	JSR FindSpriteSlot
 
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 	LDA #$7C
 	JSR RenderSprite_DrawObject
 
 	PLA
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 
 loc_BANK3_AE7C:
 	LDA ObjectYLo, X
@@ -9314,7 +9165,7 @@ loc_BANK3_AE7C:
 	TYA
 	CLC
 	ADC #$08
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 	LDA byte_RAM_0
 	STA SpriteTempScreenY
 	LDA #SpriteFlags46E_Tilemap2 | SpriteFlags46E_DoubleSpeed | SpriteFlags46E_MirrorAnimation
@@ -9444,7 +9295,7 @@ loc_BANK3_AF29:
 
 loc_BANK3_AF34:
 	STA SpriteDMAArea + $D, Y
-	LDX_abs byte_RAM_F4
+	LDX byte_RAM_F4
 	LDA SpriteDMAArea + 2, X
 	STA SpriteDMAArea + 2, Y
 	STA SpriteDMAArea + 6, Y
@@ -9605,9 +9456,10 @@ EnemyBehavior_HawkmouthBoss:
 loc_BANK3_B01C:
 	LDA EnemyArray_480, X
 	CMP #$02
-	BCC loc_BANK3_B09B
+	BCS +
+	JMP loc_BANK3_B09B
 
-	LDA EnemyArray_B1, X
++	LDA EnemyArray_B1, X
 	BNE loc_BANK3_B03B
 
 	INC EnemyArray_480, X
@@ -9678,11 +9530,20 @@ HawkmouthEat:
 	STA PlayerStateTimer
 	LDA #$FC
 	STA PlayerYVelocity
+IFDEF GS_MUSIC
+	LDA #SFX_MEGA_PUNCH
+	STA SoundEffectQueue1
+	RTS
+ENDIF
 
 ; =============== S U B R O U T I N E =======================================
 
 sub_BANK3_B095:
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_HawkOpen_WartBarf
+ELSE
+	LDA #SFX_CUT
+ENDIF
 	STA SoundEffectQueue1
 
 locret_BANK3_B09A:
@@ -9806,7 +9667,7 @@ loc_BANK3_B13B:
 	STA SpriteDMAArea + 6, Y
 	STA SpriteDMAArea + $A, Y
 	STA SpriteDMAArea + $E, Y
-	LDX_abs byte_RAM_F4
+	LDX byte_RAM_F4
 	LDA SpriteDMAArea, X
 	STA SpriteDMAArea + 8, Y
 	CLC
@@ -9903,11 +9764,6 @@ locret_BANK3_B1CC:
 EnemyInit_Wart:
 	JSR EnemyInit_Basic
 
-IFDEF RESET_CHR_LATCH
-	LDA #$04
-	JSR SetBossTileset
-ENDIF
-
 	LDA #$06
 	STA EnemyHP, X
 	LDA ObjectXHi, X
@@ -9997,7 +9853,11 @@ EnemyBehavior_Wart_PhysicsX:
 
 	BMI EnemyBehavior_Wart_Exit
 
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_HawkOpen_WartBarf
+ELSE
+	LDA #SFX_SLUDGE_BOMB
+ENDIF
 	STA SoundEffectQueue1
 	; determines how high to spit the bubble
 	LDA EnemyArray_480, X
@@ -10057,7 +9917,11 @@ EnemyBehavior_Wart_DeathFall:
 	AND #$1F
 	BNE EnemyBehavior_Wart_CheckDeathComplete
 
+IFNDEF GS_MUSIC
 	LDA #DPCM_BossDeath
+ELSE
+	LDA #SFX_BURN
+ENDIF
 	STA DPCMQueue
 	JSR CreateEnemy
 
@@ -10093,7 +9957,7 @@ EnemyBehavior_WartBubble_Exit:
 
 
 RenderSprite_Wart:
-	LDA_abs byte_RAM_F4
+	LDA byte_RAM_F4
 	STA WartOAMOffsets_RAM + 2
 	STA WartOAMOffsets_RAM + 6
 	LDA byte_RAM_10
@@ -10101,7 +9965,7 @@ RenderSprite_Wart:
 	STA byte_RAM_7
 	TAY
 	LDA WartOAMOffsets_RAM, Y
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 	LDA byte_RAM_EF
 	BNE EnemyBehavior_WartBubble_Exit
 
@@ -10149,7 +10013,7 @@ RenderSprite_Wart_DrawTop:
 	STA SpriteTempScreenY
 	LDY byte_RAM_7
 	LDA WartOAMOffsets_RAM + 1, Y
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 	LDY #$A6 ; middle row: regular
 	LDA EnemyArray_B1, X
 	BNE RenderSprite_Wart_MiddleHurt
@@ -10182,7 +10046,7 @@ RenderSprite_Wart_DrawMiddle:
 	STA SpriteTempScreenY
 	LDY byte_RAM_7
 	LDA WartOAMOffsets_RAM + 2, Y
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 	LDY #$BA ; bottom row: standing
 	LDA ObjectXVelocity, X
 	BEQ RenderSprite_Wart_DrawBottom
@@ -10237,10 +10101,6 @@ RenderSprite_Wart_DrawBottom:
 RenderSprite_Wart_Exit:
 	LDX byte_RAM_12
 	RTS
-
-
-; Unused space in the original ($B39B - $B4DF)
-unusedSpace $B4E0, $FF
 
 
 ; Used for static objects (e.g. keys)
@@ -10338,24 +10198,11 @@ ObjectTileCollision_CheckQuicksand:
 	CMP #Enemy_CobratSand
 	BEQ ObjectTileCollision_CheckConveyor
 
-IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
 	LDA byte_RAM_0
 	SEC
 	SBC #BackgroundTile_QuicksandSlow
 	CMP #$02
 	BCS ObjectTileCollision_CheckConveyor
-ELSE
-	LDY byte_RAM_0
-	LDA TileInteractionAttributesTable, Y
-	AND #%00001100
-	CMP #%00001000
-	BNE ObjectTileCollision_CheckConveyor
-
-	LDA byte_RAM_0
-	SEC
-	SBC #BackgroundTile_QuicksandSlow
-ENDIF
-
 	ASL A
 	ADC #$01
 	STA ObjectYVelocity - 1, X
@@ -10365,7 +10212,6 @@ ENDIF
 	STA ObjectTimer1 - 1, X
 
 ObjectTileCollision_CheckConveyor:
-IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
 	LDA byte_RAM_0
 	STA byte_RAM_E
 
@@ -10373,20 +10219,6 @@ IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
 	SBC #BackgroundTile_ConveyorLeft
 	CMP #$02
 	BCS loc_BANK3_B57B
-
-ELSE
-	LDY byte_RAM_0
-	STY byte_RAM_E
-
-	LDA TileInteractionAttributesTable, Y
-	AND #%00001100
-	CMP #%00001100
-
-	BNE loc_BANK3_B57B
-
-	TYA
-	AND #%00000001
-ENDIF
 
 	LDY ObjectStunTimer - 1, X
 	BNE loc_BANK3_B57B
@@ -10445,7 +10277,6 @@ loc_BANK3_B587:
 ;
 ; Check collision attributes for the next two tiles
 ;
-IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
 CheckEnemyTileCollision:
 	LDY byte_RAM_8
 	JSR sub_BANK3_BB87
@@ -10462,24 +10293,6 @@ CheckEnemyTileCollision:
 	LDA EnemyEnableCollisionFlagTable, Y
 	ORA EnemyCollision - 1, X
 	STA EnemyCollision - 1, X
-
-ELSE
-CheckEnemyTileCollision:
-	LDY byte_RAM_8
-	JSR sub_BANK3_BB87
-
-	; check tile attributes
-	LDY byte_RAM_0
-	LDA TileCollisionAttributesTable, Y
-	LDY byte_RAM_7
-	AND CheckEnemyTileCollisionAttributesTable, Y
-
-	BEQ CheckEnemyTileCollision_Exit
-
-	LDA EnemyEnableCollisionFlagTable, Y
-	ORA EnemyCollision - 1, X
-	STA EnemyCollision - 1, X
-ENDIF
 
 CheckEnemyTileCollision_Exit:
 	INC byte_RAM_7
@@ -10520,19 +10333,6 @@ EnemyTileCollisionTable:
 	.db $00 ; treat background as solid
 	.db $00 ; treat background as solid
 	.db $00 ; treat background as solid
-
-
-IFDEF ENABLE_TILE_ATTRIBUTES_TABLE
-CheckEnemyTileCollisionAttributesTable:
-	.db %00001000 ; bottom (y-velocity < 0)
-	.db %00000100 ; top (y-velocity > 0)
-	.db %00000010 ; right (x-velocity < 0)
-	.db %00000001 ; left (x-velocity > 0)
-	.db %10001000 ; background-interactive bottom (y-velocity < 0)
-	.db %01000100 ; background-interactive top (y-velocity > 0)
-	.db %00100010 ; background-interactive right (x-velocity < 0)
-	.db %00010001 ; background-interactive left (x-velocity > 0)
-ENDIF
 
 EnemyEnableCollisionFlagTable:
 	.db CollisionFlags_Up
@@ -10945,7 +10745,11 @@ CheckCollisionWithPlayer:
 
 	; accept the heart into your life
 	STA EnemyState, Y
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
+ELSE
+	LDA #SFX_FULL_HEAL
+ENDIF
 	STA SoundEffectQueue1
 	LDY PlayerMaxHealth
 	LDA PlayerHealth
@@ -10972,7 +10776,11 @@ CheckCollisionWithPlayer_NotPhanto:
 
 	LDA #$3F
 	STA StarInvincibilityTimer
+IFNDEF GS_MUSIC
 	LDA #Music1_Invincible
+ELSE
+	LDA #MUSIC_SS_AQUA
+ENDIF
 	STA MusicQueue1
 	LDA #EnemyState_Inactive
 	STA EnemyState, Y
@@ -11393,7 +11201,11 @@ loc_BANK3_BA2A:
 	STA PlayerYVelocity
 
 loc_BANK3_BA2C:
+IFNDEF GS_MUSIC
 	LDA #DPCM_PlayerHurt
+ELSE
+	LDA #SFX_BUMP
+ENDIF
 	STA DPCMQueue
 
 locret_BANK3_BA31:
@@ -11466,7 +11278,11 @@ loc_BANK3_BA7A:
 ; End of function sub_BANK3_BA5D
 
 PlayBossHurtSound:
+IFNDEF GS_MUSIC
 	LDA #DPCM_BossHurt
+ELSE
+	LDA #SFX_DAMAGE
+ENDIF
 	STA DPCMQueue
 	RTS
 
@@ -11532,19 +11348,11 @@ DetermineCollisionFlags_Y:
 	CPX #$01
 	BCS loc_BANK3_BAD1
 
-IFNDEF PLAYER_HITBOX
 	PHA
 	LDY PlayerDucking
 	PLA
 	SEC
 	SBC byte_BANK3_BB2F, Y
-ELSE
-	LDY PlayerHitbox
-	SEC
-	SBC #$21
-	CLC
-	ADC ObjectCollisionHitboxHeight, Y
-ENDIF
 
 loc_BANK3_BAD1:
 	CMP ObjectYLo - 1, X
@@ -11608,7 +11416,6 @@ loc_BANK3_BB22:
 	STA ObjectYVelocity - 1, X
 	LDA ObjectYSubpixel, Y
 	STA ObjectYSubpixel - 1, X
-	INC ObjectAnimationTimer - 1, X
 
 DetermineCollisionFlags_ExitY:
 	RTS
@@ -11643,15 +11450,6 @@ locret_BANK3_BB49:
 	RTS
 
 ; End of function sub_BANK3_BB31
-
-; ---------------------------------------------------------------------------
-_unused_BANK3_BB4A:
-	.db $FF ; May not be used, but wasn't marked as data
-	.db $FF
-	.db $FF
-	.db $FF
-	.db $FF
-	.db $FF
 
 ; Hoopstar will climb up and down any of these tiles
 HoopstarClimbTiles:
@@ -11841,7 +11639,11 @@ DoorHandling_GoThroughDoor_Bank3:
 	INC PlayerLock
 	JSR SnapPlayerToTile_Bank3
 
+IFNDEF GS_MUSIC
 	LDA #DPCM_DoorOpenBombBom
+ELSE
+	LDA #SFX_ENTER_DOOR
+ENDIF
 	STA DPCMQueue
 	RTS
 
@@ -12479,131 +12281,4 @@ IFDEF SM_USA
 	.pad $BFE0, $FF
 	.db "SUPER MARIO USA "
 	.db $00, $00, $64, $45, $33, $04, $01, $0E, $01, $10
-ENDIF
-
-IFDEF RESET_CHR_LATCH
-SetBossTileset:
-	STA BossTileset
-	INC ResetCHRLatch
-	RTS
-ENDIF
-
-
-IFDEF CONTROLLER_2_DEBUG
-;
-; Copies all character stats to RAM for hot-swapping the current character
-;
-CopyCarryYOffsets:
-	LDX #(AreaMainRoutine - CarryYOffsets - 1)
-CopyCarryYOffsets_Loop:
-	LDA CarryYOffsets, X
-	STA CarryYOffsetsRAM, X
-	DEX
-	BPL CopyCarryYOffsets_Loop
-
-	RTS
-
-AreaDebugRoutine:
-	LDA CreateObjectType
-	BEQ AreaDebugRoutine_Exit
-
-	JSR DebugCreateObject
-
-AreaDebugRoutine_Exit:
-	RTS
-
-;
-; Input
-;   CreateObjectType = object type
-;
-DebugCreateObject:
-	JSR CreateEnemy
-
-	BMI AreaDebugRoutine_Exit
-
-	LDX byte_RAM_0
-	LDA CreateObjectType
-	STA ObjectType, X
-	LDA ScreenBoundaryLeftLo
-	ADC #$80
-	STA ObjectXLo, X
-	LDA ScreenBoundaryLeftHi
-	ADC #$00
-	STA ObjectXHi, X
-	LDA ScreenYLo
-	STA ObjectYLo, X
-	LDA ScreenYHi
-	ADC #$00
-	STA ObjectYHi, X
-
-	JSR InitializeEnemy
-
-	LDA CreateObjectAttributes
-	BEQ DebugCreateObject_ClearObjectType
-
-DebugCreateObject_ObjectCarried:
-	ROL CreateObjectAttributes
-	BCC DebugCreateObject_ObjectTimer
-
-	LDA #$01
-	STA HoldingItem
-	STA ObjectBeingCarriedTimer, X
-	STX ObjectBeingCarriedIndex
-
-	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
-
-DebugCreateObject_ObjectTimer:
-	ROL CreateObjectAttributes
-	BCC DebugCreateObject_ObjectBottomScreen
-
-	LDA #$FF
-	STA ObjectTimer1, X
-
-DebugCreateObject_ObjectBottomScreen:
-	ROL CreateObjectAttributes
-	BCC DebugCreateObject_Bit4
-
-	LDA ObjectYLo, X
-	CLC
-	ADC #$E0
-	STA ObjectYLo, X
-	LDA ObjectYHi, X
-	ADC #$00
-	STA ObjectYHi, X
-
-DebugCreateObject_Bit4:
-	ROL CreateObjectAttributes
-	BCC DebugCreateObject_Bit3
-
-DebugCreateObject_Bit3:
-	ROL CreateObjectAttributes
-	BCC DebugCreateObject_Bit2
-
-DebugCreateObject_Bit2:
-	ROL CreateObjectAttributes
-	BCC DebugCreateObject_ObjectThrown
-
-DebugCreateObject_ObjectThrown:
-	ROL CreateObjectAttributes
-	BCC DebugCreateObject_ObjectNoVelocityReset
-
-	LDA #$01
-	STA ObjectProjectileTimer, X
-
-DebugCreateObject_ObjectNoVelocityReset:
-	ROL CreateObjectAttributes
-	BCS DebugCreateObject_ClearObjectType
-
-	LDA #$00
-	STA ObjectXVelocity, X
-	STA ObjectYVelocity, X
-
-DebugCreateObject_ClearObjectType:
-	LDA #$00
-	STA CreateObjectType
-
-DebugCreateObject_Exit:
-	RTS
-
 ENDIF

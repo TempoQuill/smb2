@@ -470,7 +470,6 @@ loc_BANK0_8268:
 	LDA #$00
 	STA byte_RAM_53A, X
 	STA byte_RAM_53D
-	STA byte_RAM_53E
 
 	RTS
 
@@ -974,21 +973,6 @@ SetTilePaletteInPPUAttribute:
 	DEC PPUAttributeUpdateCounter
 	RTS
 
-
-; Unused?
-_code_04A2:
-	LDX #$07
-	LDA #$00
-
-; Unused?
-loc_BANK0_84A6:
-	STA ScrollingPPUAttributeUpdateBuffer, X
-	DEX
-	BNE loc_BANK0_84A6
-
-	RTS
-
-
 ;
 ; Loads a background tile from the level data and determines its PPU attribute data
 ;
@@ -1007,8 +991,6 @@ sub_BANK0_84AC:
 	JMP SetTilePaletteInPPUAttribute
 
 
-; Unused space in the original ($84B8 - $84FF)
-unusedSpace $8500, $FF
 
 
 ;
@@ -1486,7 +1468,6 @@ UseMainAreaScreenBoundaries:
 	LDA byte_RAM_53D
 	BNE UseMainAreaScreenBoundaries_Exit
 
-	INC byte_RAM_53E ; unused?
 	INC byte_RAM_53D
 	INC byte_RAM_D5
 	JSR RestorePlayerPosition
@@ -1556,7 +1537,6 @@ loc_BANK0_87CB:
 	LDA #$00
 	STA byte_RAM_53A
 	STA byte_RAM_53D
-	STA byte_RAM_53E
 	INC byte_RAM_537
 	RTS
 
@@ -1904,19 +1884,19 @@ SetObjectLocks_Loop:
 
 
 
-; Unused space in the original ($8966 - $89FF)
-unusedSpace $8A00, $FF
 
 
 GrowShrinkSFXIndexes:
+IFNDEF GS_MUSIC
 	.db SoundEffect2_Shrinking
 	.db SoundEffect2_Growing
+ELSE
+	.db SFX_SUPER_EFFECTIVE
+	.db SFX_POTION
+ENDIF
 
 
 HandlePlayerState:
-IFDEF CONTROLLER_2_DEBUG
-	JSR CheckPlayer2Joypad
-ENDIF
 
 	LDA PlayerState ; Handles player states?
 	CMP #PlayerState_Lifting
@@ -1950,11 +1930,7 @@ loc_BANK0_8A26:
 	.dw HandlePlayerState_GoingDownJar ; Going down jar
 	.dw HandlePlayerState_ExitingJar ; Exiting jar
 	.dw HandlePlayerState_HawkmouthEating ; Hawkmouth eating
-IFNDEF RESPAWN_INSTEAD_OF_DEATH
 	.dw HandlePlayerState_Dying ; Dying
-ELSE
-	.dw HandlePlayerState_Respawning
-ENDIF
 	.dw HandlePlayerState_ChangingSize ; Changing size
 
 
@@ -1998,8 +1974,17 @@ HandlePlayerState_Dying:
 
 	LDA PlayerScreenYHi
 	CMP #02
-	BEQ LoseALife
+IFDEF GS_MUSIC
+	BNE HandlePlayerState_DyingPhysics
 
+	JSR CheckSFX
+	BCS locret_BANK0_8A86
+	BCC LoseALife
+ELSE
+	BEQ LoseALife
+ENDIF
+
+HandlePlayerState_DyingPhysics:
 	JSR ApplyPlayerPhysicsY
 
 	LDA PlayerYVelocity
@@ -2044,8 +2029,11 @@ HandlePlayerState_Lifting:
 
 	CPY #$07
 	BNE loc_BANK0_8A9D
-
+IFNDEF GS_MUSIC
 	LDA #DPCM_ItemPull
+ELSE
+	LDA #SFX_CHANGE_DEX_MODE
+ENDIF
 	STA DPCMQueue
 
 loc_BANK0_8A9D:
@@ -2079,11 +2067,6 @@ loc_BANK0_8ABB:
 
 loc_BANK0_8ABF:
 	INC PlayerDucking
-IFDEF PLAYER_HITBOX
-	LDA PlayerDucking
-	STA PlayerHitbox
-ENDIF
-
 locret_BANK0_8AC1:
 	RTS
 
@@ -2178,7 +2161,11 @@ PlayerClimbAnimation:
 	LDA PlayerDirection
 	EOR #$01
 	STA PlayerDirection
+IFNDEF GS_MUSIC
 	LDA #SoundEffect2_Climbing
+ELSE
+	LDA #SFX_UNKNOWN_61
+ENDIF
 	STA SoundEffectQueue2
 
 PlayerClimbAnimation_Exit:
@@ -2350,7 +2337,7 @@ HandlePlayerState_HawkmouthEating:
 
 	JSR ApplyPlayerPhysicsY
 
-	LDA_abs PlayerCollision
+	LDA PlayerCollision
 
 	BEQ locret_BANK0_8BEB
 
@@ -2441,10 +2428,6 @@ sub_BANK0_8C1A:
 	BNE loc_BANK0_8C92
 
 	DEC PlayerDucking
-IFDEF PLAYER_HITBOX
-	LDA PlayerDucking
-	STA PlayerHitbox
-ENDIF
 
 loc_BANK0_8C2B:
 	LDA Player1JoypadPress
@@ -2455,7 +2438,11 @@ loc_BANK0_8C2B:
 	STA PlayerAnimationFrame
 	JSR PlayerStartJump
 
+IFNDEF GS_MUSIC
 	LDA #SoundEffect2_Jump
+ELSE
+	LDA #SFX_JUMP_OVER_LEDGE
+ENDIF
 	STA SoundEffectQueue2
 
 loc_BANK0_8C3D:
@@ -2470,10 +2457,6 @@ loc_BANK0_8C3D:
 	BEQ ResetPartialCrouchJumpTimer
 
 	INC PlayerDucking ; set ducking state?
-IFDEF PLAYER_HITBOX
-	LDA PlayerDucking
-	STA PlayerHitbox
-ENDIF
 	LDA #SpriteAnimation_Ducking ; set ducking animation
 	STA PlayerAnimationFrame
 	LDA PlayerInAir ; skip ahead if player is in air
@@ -2934,7 +2917,11 @@ loc_BANK0_8E42:
 	LDA #$0A
 	STA PlayerWalkFrameCounter
 	DEC HoldingItem
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_ThrowItem
+ELSE
+	LDA #SFX_THROW_BALL
+ENDIF
 	STA SoundEffectQueue1
 	LDA #$00
 	STA PlayerDucking
@@ -3080,18 +3067,6 @@ InteractiveTileCollisionTable:
 	.db $02 ; jumpthrough left (x-velocity > 0)
 	.db $02
 
-IFDEF ENABLE_TILE_ATTRIBUTES_TABLE
-CheckPlayerTileCollisionAttributesTable:
-	.db %00001000 ; jumpthrough bottom (y-velocity < 0)
-	.db %00001000
-	.db %00000100 ; jumpthrough top (y-velocity > 0)
-	.db %00000100
-	.db %00000010 ; jumpthrough right (x-velocity < 0)
-	.db %00000010
-	.db %00000001 ; jumpthrough left (x-velocity > 0)
-	.db %00000001
-ENDIF
-
 ;
 ; Collision flags that should be set if a given collision check passes
 ;
@@ -3168,12 +3143,7 @@ PlayerTileCollision_Downward:
 	BEQ PlayerTileCollision_Downward_CheckQuicksand
 
 	CPY #$05
-IFNDEF ALWAYS_ALLOW_QUICKSAND
 	BNE PlayerTileCollision_Downward_AfterCheckQuicksand
-ELSE
-	NOP
-	NOP
-ENDIF
 
 PlayerTileCollision_Downward_CheckQuicksand:
 	JSR PlayerTileCollision_CheckQuicksand
@@ -3229,25 +3199,7 @@ PlayerTileCollision_CheckDamageTile:
 	STA SpriteTempScreenX
 	ROR byte_RAM_12
 
-IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
 	JSR PlayerTileCollision_HurtPlayer
-ELSE
-	LDA byte_RAM_E
-	CMP #$02
-	BCC PlayerTileCollision_DamageTile
-	BNE PlayerTileCollision_HealthTile
-
-	; instant kill
-	LDY #$0F
-	STY PlayerHealth
-
-PlayerTileCollision_DamageTile:
-	JSR PlayerTileCollision_HurtPlayer
-	JMP PlayerTileCollision_Horizontal
-
-PlayerTileCollision_HealthTile:
-	JSR RestorePlayerToFullHealth
-ENDIF
 
 PlayerTileCollision_Horizontal:
 	LDY #$02
@@ -3287,7 +3239,6 @@ PlayerTileCollision_Exit:
 CheckPlayerTileCollision_Twice:
 	JSR CheckPlayerTileCollision
 
-IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
 CheckPlayerTileCollision:
 	LDX #$00
 	LDY byte_RAM_8
@@ -3334,60 +3285,6 @@ CheckPlayerTileCollision_UpdatePlayerCollision:
 
 CheckPlayerTileCollision_Exit:
 	JMP CheckPlayerTileCollision_Increment
-
-ELSE
-; custom behavior using tile attribute table
-CheckPlayerTileCollision:
-	LDX #$00
-	LDY byte_RAM_8
-	JSR sub_BANK0_924F
-
-	LDX byte_RAM_7
-	LDY byte_RAM_0
-
-	; check tile attributes
-	LDA TileCollisionAttributesTable, Y
-	AND CheckPlayerTileCollisionAttributesTable, X
-
-	BEQ CheckPlayerTileCollision_CheckSpikes
-
-	LDA EnableCollisionFlagTable, X
-	ORA PlayerCollision
-	STA PlayerCollision
-
-CheckPlayerTileCollision_CheckSpikes:
-	LDA TileInteractionAttributesTable, Y
-	AND #%00000011
-	BEQ CheckPlayerTileCollision_CheckIce
-
-	ASL A
-	ORA #%00000001
-	STA byte_RAM_E
-
-CheckPlayerTileCollision_CheckIce:
-	LDA TileInteractionAttributesTable, Y
-	AND #%00001100
-	BEQ CheckPlayerTileCollision_CheckConveyor
-	CMP #%00000100
-	BNE CheckPlayerTileCollision_CheckConveyor
-
-	LDA #$01
-	STA byte_RAM_C
-	BNE CheckPlayerTileCollision_Exit
-
-CheckPlayerTileCollision_CheckConveyor:
-	CMP #%00001100
-	BNE CheckPlayerTileCollision_Exit
-
-	TYA
-	AND #%00000001
-	ASL A
-	ORA #%00000001
-	STA byte_RAM_A
-
-CheckPlayerTileCollision_Exit:
-	JMP CheckPlayerTileCollision_Increment
-ENDIF
 
 
 ;
@@ -3436,7 +3333,11 @@ PlayerTileCollision_CheckCherryAndClimbable_AfterTick:
 	JSR CreateStarman
 
 PlayerTileCollision_Cherry:
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_CherryGet
+ELSE
+	LDA #SFX_EGG_CRACK
+ENDIF
 	STA SoundEffectQueue1
 	LDA #BackgroundTile_Sky
 	JMP loc_BANK0_937C
@@ -3879,7 +3780,11 @@ DoorHandling_GoThroughDoor:
 	INC PlayerLock
 	JSR SnapPlayerToTile
 
+IFNDEF GS_MUSIC
 	LDA #DPCM_DoorOpenBombBom
+ELSE
+	LDA #SFX_ENTER_DOOR
+ENDIF
 	STA DPCMQueue
 
 DoorHandling_Exit:
@@ -4056,53 +3961,6 @@ byte_BANK0_92E0:
 	.db $0A
 	.db $01
 	.db $0B
-
-
-; Unused?
-; Copy of DetermineVerticalScroll
-_code_12E3:
-	LDX NeedsScroll
-	BNE locret_BANK0_9311
-
-	LDA PlayerState
-	CMP #PlayerState_Lifting
-	BCS locret_BANK0_9311
-
-	LDA PlayerScreenYLo
-	LDY PlayerScreenYHi
-	BMI loc_BANK0_92FF
-
-	BNE loc_BANK0_9305
-
-	CMP #$B4
-	BCS loc_BANK0_9305
-
-	CMP #$21
-	BCS loc_BANK0_9307
-
-loc_BANK0_92FF:
-	LDY PlayerInAir
-	BNE loc_BANK0_9307
-
-	BEQ loc_BANK0_9306
-
-loc_BANK0_9305:
-	INX
-
-loc_BANK0_9306:
-	INX
-
-loc_BANK0_9307:
-	LDA VerticalScrollDirection
-	STX VerticalScrollDirection
-	BNE locret_BANK0_9311
-
-loc_BANK0_930F:
-	STX NeedsScroll
-
-locret_BANK0_9311:
-	RTS
-
 
 PlayerCollisionDirectionTable:
 	.db CollisionFlags_Right
@@ -4471,32 +4329,6 @@ AreaTransitionPlacement_Reset:
 	LDA CurrentLevelEntryPage
 	STA byte_RAM_E8
 
-IFDEF LEVEL_ENGINE_UPGRADES
-	LDX IsHorizontalLevel
-	BEQ AreaTransitionPlacement_Reset_FindOpenSpace
-
-	; Find non-sky to use as the ground
-	LDA #$E0
-	STA byte_RAM_E6
-
-AreaTransitionPlacement_Reset_FindStandableTile:
-	LDA #$0C
-	STA byte_RAM_3
-AreaTransitionPlacement_Reset_FindStandableTileLoop:
-	JSR SetTileOffsetAndAreaPageAddr_Bank1
-
-	LDY byte_RAM_E7
-	LDA (byte_RAM_1), Y
-	CMP #BackgroundTile_Sky
-	BNE AreaTransitionPlacement_Reset_FindOpenSpaceLoop
-
-	JSR AreaTransitionPlacement_MovePlayerUp1Tile
-
-	STA byte_RAM_E6
-	DEC byte_RAM_3
-	BNE AreaTransitionPlacement_Reset_FindStandableTileLoop
-ENDIF
-
 ;
 ; The player must start in empty space (not a wall)
 ;
@@ -4581,12 +4413,7 @@ AreaTransitionPlacement_Door_InnerLoop:
 
 	; Nothing matched on this row, so check the next row or give up
 	DEC byte_RAM_3
-IFNDEF ROBUST_TRANSITION_SEARCH
 	BEQ AreaTransitionPlacement_Door_Fallback
-ENDIF
-IFDEF ROBUST_TRANSITION_SEARCH
-	BEQ AreaTransitionPlacement_DoorCustom
-ENDIF
 
 	JSR AreaTransitionPlacement_MovePlayerUp1Tile
 
@@ -4603,62 +4430,6 @@ AreaTransitionPlacement_Door_Exit:
 	LDA #$00
 	STA PlayerLock
 	RTS
-
-
-IFDEF ROBUST_TRANSITION_SEARCH
-;
-; Looks for a door and positions the player at it
-;
-; In contrast to the normal door placement routine, this will search all
-; x-positions rather than just one opposite the door
-;
-AreaTransitionPlacement_DoorCustom:
-	; Start on the correct page
-	LDX CurrentLevelEntryPage
-	JSR SetAreaPageAddr_Bank1
-
-	; Start at the bottom right and work backwards
-	LDA #$EF
-	STA byte_RAM_E7
-
-AreaTransitionPlacement_DoorCustom_Loop:
-	; Read the target tile
-	LDY byte_RAM_E7
-	LDA (byte_RAM_1), Y
-	LDY #$05
-
-AreaTransitionPlacement_DoorCustom_InnerLoop:
-	; See if it matches any door tile
-	CMP DoorTiles - 1, Y
-	BEQ AreaTransitionPlacement_DoorCustom_Exit
-	DEY
-	BNE AreaTransitionPlacement_DoorCustom_InnerLoop
-
-	; No matches on this tile, check the next one or give up
-	DEC byte_RAM_E7
-	BEQ AreaTransitionPlacement_DoorCustom_Fallback
-
-	JMP AreaTransitionPlacement_DoorCustom_Loop
-
-AreaTransitionPlacement_DoorCustom_Fallback:
-	LDA #$20
-	STA PlayerYLo
-	JSR AreaTransitionPlacement_Middle
-	JMP AreaTransitionPlacement_Door_Exit
-
-AreaTransitionPlacement_DoorCustom_Exit:
-	LDA byte_RAM_E7
-	ASL A
-	ASL A
-	ASL A
-	ASL A
-	STA PlayerXLo
-	LDA byte_RAM_E7
-	AND #$F0
-	STA PlayerYLo
-	JMP AreaTransitionPlacement_Door_Exit
-ENDIF
-
 
 ;
 ; Place the player at the top of the screen in the middle horizontally
@@ -4706,143 +4477,9 @@ AreaTransitionPlacement_Climbing:
 	DEC PlayerYHi
 
 AreaTransitionPlacement_Climbing_Exit:
-IFDEF ROBUST_TRANSITION_SEARCH
-	JSR AreaTransitionPlacement_ClimbingCustom
-
-	BCS AreaTransitionPlacement_Climbing_SetPlayerAnimationFrame
-
-	; Try the opposite side of the screen
-	LDA PlayerYLo
-	EOR #$10
-	STA PlayerYLo
-
-	LDA PlayerYHi
-	EOR #$FF
-	STA PlayerYHi
-
-	JSR AreaTransitionPlacement_ClimbingCustom
-	BCC AreaTransitionPlacement_Climbing_UnreversePositionY
-
-	; Found something on the opposite side, so flip Y velocity
-	LDY #$01
-	LDA PlayerYVelocity
-	BMI AreaTransitionPlacement_Climbing_SetYVelocity
-
-	INY
-AreaTransitionPlacement_Climbing_SetYVelocity:
-	LDA ClimbSpeed, Y
-	STA PlayerYVelocity
-
-	BNE AreaTransitionPlacement_Climbing_SetPlayerAnimationFrame
-
-AreaTransitionPlacement_Climbing_UnreversePositionY:
-	; Unflip Y position
-	LDA PlayerYLo
-	EOR #$10
-	STA PlayerYLo
-
-	LDA PlayerYHi
-	EOR #$FF
-	STA PlayerYHi
-
-AreaTransitionPlacement_Climbing_SetPlayerAnimationFrame:
-ENDIF
-
 	LDA #SpriteAnimation_Climbing
 	STA PlayerAnimationFrame
 	RTS
-
-
-IFDEF ROBUST_TRANSITION_SEARCH
-;
-; Ouput
-;   C = set if a climbable tile was found
-;
-AreaTransitionPlacement_ClimbingCustom:
-	; Target x-position
-	LDA PlayerXLo
-	LSR A
-	LSR A
-	LSR A
-	LSR A
-	STA byte_RAM_E5
-
-	; Target y-position
-	LDA PlayerYLo
-	EOR #$10
-	CLC
-	ADC #$10
-	CMP #$F0
-	BNE AreaTransitionPlacement_ClimbingCustom_AfterNudge
-	SEC
-	SBC #$10
-AreaTransitionPlacement_ClimbingCustom_AfterNudge:
-	STA byte_RAM_E6
-
-	; Read the target tile
-	LDA CurrentLevelEntryPage
-	STA byte_RAM_E8
-	JSR SetTileOffsetAndAreaPageAddr_Bank1
-	LDY byte_RAM_E7
-	LDA (byte_RAM_1), Y
-
-	; Check if the target tile is climbable
-	LDY #$09
-AreaTransitionPlacement_ClimbingCustom_CheckLoop:
-	CMP ClimbableTiles, Y
-	BNE AreaTransitionPlacement_ClimbingCustom_LoopNext
-
-	RTS
-
-AreaTransitionPlacement_ClimbingCustom_LoopNext:
-	DEY
-	BPL AreaTransitionPlacement_ClimbingCustom_CheckLoop
-
-	; Target tile is not climbable; start at the right and work backwards
-	LDA byte_RAM_E7
-	AND #$F0
-	STA byte_RAM_E6
-
-	LDA #$0F
-	STA byte_RAM_3
-	CLC
-	ADC byte_RAM_E6
-	STA byte_RAM_E7
-
-AreaTransitionPlacement_ClimbingCustom_Loop:
-	; Read the target tile
-	LDY byte_RAM_E7
-	LDA (byte_RAM_1), Y
-	LDY #$09
-
-AreaTransitionPlacement_ClimbingCustom_InnerLoop:
-	CMP ClimbableTiles, Y
-	BEQ AreaTransitionPlacement_ClimbingCustom_SetXPosition
-	DEY
-	BPL AreaTransitionPlacement_ClimbingCustom_InnerLoop
-
-	; No matches on this tile, check the next one or give up
-	DEC byte_RAM_E7
-	DEC byte_RAM_3
-	BMI AreaTransitionPlacement_ClimbingCustom_NotFound
-
-	JMP AreaTransitionPlacement_ClimbingCustom_Loop
-
-AreaTransitionPlacement_ClimbingCustom_SetXPosition:
-	LDA byte_RAM_3
-	ASL A
-	ASL A
-	ASL A
-	ASL A
-	STA PlayerXLo
-
-	SEC
-	RTS
-
-AreaTransitionPlacement_ClimbingCustom_NotFound:
-	CLC
-	RTS
-ENDIF
 
 
 AreaTransitionPlacement_Subspace:
@@ -4905,15 +4542,6 @@ PageHeightCompensation:
 
 PageHeightCompensation_Exit:
 	RTS
-
-
-IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
-IFNDEF ROBUST_TRANSITION_SEARCH
-
-; Unused space in the original ($95C3 - $95FF)
-unusedSpace $9600, $FF
-ENDIF
-ENDIF
 
 
 TitleScreenPPUDataPointers:
@@ -5059,7 +4687,6 @@ IFNDEF SM_USA
 	.db $23, $D1, $0E, $80, $A8, $AA, $AA, $A2, $22, $00, $00, $88, $AA, $AA, $AA, $AA, $22
 	.db $23, $E3, $02, $88, $22
 	.db $23, $EA, $04, $F0, $F8, $F2, $F0
-	.db $00
 
 ELSE
 	; TM
@@ -5099,12 +4726,8 @@ ELSE
 
 	.db $23, $D1, $0E, $A0, $A0, $A0, $A0, $A0, $22, $00, $00, $AA, $AA, $AA, $AA, $AA, $A2
 	.db $23, $E2, $03, $0C, $0F, $0F
-	.db $00
 ENDIF
-
-IFDEF PAD_TITLE_SCREEN_PPU_DATA
-	.pad TitleLayout + $300, $00
-ENDIF
+	.dsb $3f, 0
 
 IFNDEF SM_USA
 TitleBackgroundPalettes:
@@ -5112,25 +4735,12 @@ TitleBackgroundPalettes:
 	.db $22, $30, $31, $0F ; Unused
 	.db $22, $30, $0F, $0F ; Logo
 	.db $22, $30, $0F, $0F ; Copyright, Story
-
-TitleSpritePalettes:
-	.db $22, $30, $28, $0F ; Unused DDP character palettes
-	.db $22, $30, $25, $0F ; There are no sprites on the title screen,
-	.db $22, $30, $12, $0F ; so these are totally unused
-	.db $22, $30, $23, $0F
-
 ELSE
 TitleBackgroundPalettes:
 	.db $0F, $27, $17, $07
 	.db $0F, $36, $26, $16
 	.db $0F, $16, $02, $30
 	.db $0F, $30, $25, $16
-
-TitleSpritePalettes:
-	.db $0F, $30, $28, $0F
-	.db $0F, $30, $25, $0F
-	.db $0F, $30, $12, $0F
-	.db $0F, $30, $23, $0F
 ENDIF
 
 TitleStoryText_STORY:
@@ -5323,7 +4933,13 @@ InitTitleBackgroundPalettesLoop:
 	JSR WaitForNMI_TitleScreen
 
 	; Cue the music!
+IFNDEF GS_MUSIC
 	LDA #Music1_Title
+ELSE
+	LDA #MUSIC_TITLE
+	LDA #1
+	STA zMusicPlaying
+ENDIF
 	STA MusicQueue1
 	JSR WaitForNMI_TitleScreen_TurnOnPPU
 
@@ -5610,9 +5226,13 @@ loc_BANK0_9C19:
 	AND #ControllerInput_Start
 	BEQ loc_BANK0_9C35
 
-loc_BANK0_9C1F:
+loc_BANK0_9C1F:	
+IFNDEF GS_MUSIC
 	LDA #Music2_StopMusic
 	STA MusicQueue2
+ELSE
+	JSR InitSound
+ENDIF
 	JSR WaitForNMI_TitleScreen
 
 	LDA #$00
@@ -5658,117 +5278,6 @@ loc_BANK0_9C52:
 	JMP loc_BANK0_9A53
 
 ; End of function TitleScreen
-
-
-IFDEF RESPAWN_INSTEAD_OF_DEATH
-HandlePlayerState_Respawning:
-	; Start from zero
-	LDA #PlayerState_Normal
-	STA PlayerState
-	STA PlayerXVelocity
-	STA PlayerYVelocity
-
-	; Are the in a jar?
-	LDA InJarType
-	BNE HandlePlayerState_Respawning_Jar
-
-	; Are we in subspace?
-	LDA InSubspaceOrJar
-	BEQ HandlePlayerState_Respawning_Regular
-
-HandlePlayerState_Respawning_Subspace:
-	; Exit subspace immediately
-	LDA #$00
-	STA InSubspaceOrJar
-	STA SubspaceTimer
-
-	RTS
-
-HandlePlayerState_Respawning_Jar:
-	; Pointer jars reload like an area
-	CMP #$02
-	BEQ HandlePlayerState_Respawning_AreaReset
-
-HandlePlayerState_Respawning_JarSubArea:
-	; Clear the sub-area tile layout
-	JSR ResetSubAreaJarLayout
-
-	; Redraw tiles (horizontal level)
-	JSR WaitForNMI_TurnOffPPU
-
-	; Set update boundary to page 10 for sub-area
-	LDA #$0A
-	STA BackgroundUpdateBoundary
-
-HandlePlayerState_Respawning_JarSubArea_Loop:
-	JSR WaitForNMI
-
-	JSR sub_BANK0_87AA
-
-	LDA byte_RAM_537
-	BEQ HandlePlayerState_Respawning_JarSubArea_Loop
-
-	JSR WaitForNMI_TurnOnPPU
-	JSR WaitForNMI
-
-	JSR DoAreaReset
-
-	JSR ApplyAreaTransition
-
-	RTS
-
-HandlePlayerState_Respawning_Regular:
-	; Reset level
-	LDA CurrentLevel_Init
-	STA CurrentLevel
-	LDA CurrentLevelArea_Init
-	STA CurrentLevelArea
-	LDA CurrentLevelEntryPage_Init
-	STA CurrentLevelEntryPage
-	LDA TransitionType_Init
-	STA TransitionType
-
-	; Reset player
-	LDA PlayerXLo_Init
-	STA PlayerXLo
-	LDA PlayerYLo_Init
-	STA PlayerYLo
-	LDA PlayerScreenX_Init
-	STA PlayerScreenX
-	LDA PlayerScreenYLo_Init
-	STA PlayerScreenYLo
-	LDA PlayerYVelocity_Init
-	STA PlayerYVelocity
-	LDA PlayerState_Init
-	STA PlayerState
-
-	LDA #$00
-	STA PlayerXVelocity
-	STA PlayerCurrentSize
-	STA InSubspaceOrJar
-	STA SubspaceTimer
-
-	JSR RestorePlayerToFullHealth
-
-	JSR LoadCharacterCHRBanks
-
-HandlePlayerState_Respawning_AreaReset:
-	JSR DoAreaReset
-
-	; Break out of HandlePlayerState
-	PLA
-	PLA
-	; Break out of RunFrame
-	PLA
-	PLA
-
-	; Kick off the level again
-	JMP StartLevel
-ENDIF
-
-; Unused space in the original ($9C58 - $A1FF)
-unusedSpace $A200, $FF
-
 
 EndingPPUDataPointers:
 	.dw PPUBuffer_301
@@ -5937,6 +5446,10 @@ CorkRoomSpriteAttributes:
 
 
 FreeSubconsScene:
+IFDEF GS_MUSIC
+	LDA #MUSIC_CREDITS
+	STA MusicQueue2
+ENDIF
 	JSR WaitForNMI_Ending_TurnOffPPU
 	JSR ClearNametablesAndSprites
 
@@ -6002,8 +5515,10 @@ FreeSubconsScene_JumpingLoop:
 	CMP #$25
 	BNE FreeSubconsScene_JumpingLoop
 
+IFNDEF GS_MUSIC
 	LDY #Music2_EndingAndCast
 	STY MusicQueue2
+ENDIF
 	BNE FreeSubconsScene_JumpingLoop
 
 FreeSubconsScene_Exit:
@@ -6064,7 +5579,11 @@ FreeSubconsScene_Phase1:
 	STA PlayerAnimationFrame
 
 FreeSubconsScene_Jump:
+IFNDEF GS_MUSIC
 	LDA #SoundEffect2_Jump
+ELSE
+	LDA #SFX_JUMP_OVER_LEDGE
+ENDIF
 	STA SoundEffectQueue2
 	JMP PlayerStartJump
 
@@ -6163,9 +5682,12 @@ FreeSubconsScene_Phase4:
 	LDA #SpriteAnimation_Jumping
 	STA PlayerAnimationFrame
 
+IFNDEF GS_MUSIC
 	LDA #DPCM_ItemPull
+ELSE
+	LDA #SFX_CHANGE_DEX_MODE
+ENDIF
 	STA DPCMQueue
-
 	LDA #$A0
 	STA ObjectYVelocity + 8
 	RTS
@@ -6233,7 +5755,11 @@ FreeSubconsScene_Subcons_Loop:
 	CMP #$01
 	BNE FreeSubconsScene_Subcons_Next
 
+IFNDEF GS_MUSIC
 	LDA #SoundEffect1_ThrowItem
+ELSE
+	LDA #SFX_THROW_BALL
+ENDIF
 	STA SoundEffectQueue1
 	BNE FreeSubconsScene_Subcons_Next
 
@@ -6878,7 +6404,7 @@ loc_BANK1_AC0A:
 	CMP #$20
 	BCC loc_BANK1_AC37
 
-	INC_abs byte_RAM_E6
+	INC byte_RAM_E6
 
 	LDA #$A0
 	STA byte_RAM_10
@@ -6983,7 +6509,7 @@ loc_BANK1_AC8B:
 	LDA #$DA
 	STA ObjectYVelocity + 6
 
-	INC_abs byte_RAM_E6
+	INC byte_RAM_E6
 
 
 loc_BANK1_ACA4:
@@ -7242,7 +6768,7 @@ ContributorTicker:
 	CLC
 	ADC #$09
 
-	STA_abs ScreenUpdateIndex
+	STA ScreenUpdateIndex
 
 	DEC ContributorIndex
 	BPL ContributorTicker_Exit
@@ -7302,9 +6828,6 @@ loc_BANK1_AE57:
 ; End of function sub_BANK1_AE43
 
 ; ---------------------------------------------------------------------------
-
-; Unused space in the original ($AE5A - $B8FF)
-unusedSpace $B900, $FF
 
 MysteryCharacterData3900:
 	.db $FB ; @TODO ??? Not sure what this is
@@ -7687,7 +7210,6 @@ SetAreaPageAddr_Bank1:
 ;   A = Whether the player is sinking in quicksand
 ;   X = PlayerInAir flag
 ;
-IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
 PlayerTileCollision_CheckQuicksand:
 	LDA #$01
 	LDY byte_RAM_0
@@ -7696,24 +7218,6 @@ PlayerTileCollision_CheckQuicksand:
 
 	CPY #BackgroundTile_QuicksandFast
 	BEQ PlayerTileCollision_QuicksandFast
-
-ELSE
-PlayerTileCollision_CheckQuicksand:
-	LDY byte_RAM_0
-	LDA InteractiveTileCollisionTable, Y
-	AND #%00001100
-	CMP #%00001000
-
-	BNE PlayerTileCollision_NotQuicksand
-
-	TYA
-	AND %00000001
-	BNE PlayerTileCollision_QuicksandFast
-
-	LDA #$01
-	BNE PlayerTileCollision_QuicksandSlow
-ENDIF
-
 PlayerTileCollision_NotQuicksand:
 	LDA #$00
 	RTS
@@ -7789,7 +7293,11 @@ PlayerTileCollision_HurtPlayer:
 
 loc_BANK1_BAE5:
 	STA PlayerYVelocity
+IFNDEF GS_MUSIC
 	LDA #DPCM_PlayerHurt
+ELSE
+	LDA #SFX_BUMP
+ENDIF
 	STA DPCMQueue
 
 locret_BANK1_BAEC:
@@ -7885,357 +7393,3 @@ CreateEnemy_Bank1_FoundSlot:
 
 	LDX byte_RAM_12
 	RTS
-
-
-IFDEF CONTROLLER_2_DEBUG
-ChangeCharacterOffsets:
-	.db $00 ; unused
-	.db $03 ; Mario to right
-	.db $01 ; Mario to left
-	.db $00 ; Princess to right
-	.db $02 ; Princess to left
-	.db $01 ; Toad to right
-	.db $03 ; Toad to left
-	.db $02 ; Luigi to right
-	.db $00 ; Luigi to left
-
-CheckPlayer2Joypad:
-	LDA ChangeCharacterTimer
-	BEQ CheckPlayer2Joypad_Go
-
-	DEC ChangeCharacterTimer
-
-CheckPlayer2Joypad_No:
-	RTS
-
-CheckPlayer2Joypad_Go:
-	LDA PlayerState
-	CMP #PlayerState_Dying
-	BEQ CheckPlayer2Joypad_No
-
-CheckPlayer2Joypad_CheckSelect:
-	LDA Player2JoypadPress
-	AND #ControllerInput_Select
-	BEQ CheckPlayer2Joypad_CheckUp
-
-	LDA CurrentLevel_Init
-	STA CurrentLevel
-	LDA CurrentLevelArea_Init
-	STA CurrentLevelArea
-	LDA CurrentLevelEntryPage_Init
-	STA CurrentLevelEntryPage
-	LDA TransitionType_Init
-	STA TransitionType
-
-	LDA PlayerXLo_Init
-	STA PlayerXLo
-	LDA PlayerYLo_Init
-	STA PlayerYLo
-	LDA PlayerScreenX_Init
-	STA PlayerScreenX
-	LDA PlayerScreenYLo_Init
-	STA PlayerScreenYLo
-	LDA PlayerYVelocity_Init
-	STA PlayerYVelocity
-	LDA PlayerState_Init
-	STA PlayerState
-
-	LDA #$00
-	STA PlayerXVelocity
-
-	JSR DoAreaReset
-
-	JMP StartLevel
-
-CheckPlayer2Joypad_CheckUp:
-	LDA Player2JoypadPress
-	AND #ControllerInput_Up
-	BEQ CheckPlayer2Joypad_CheckDown
-
-	LDY PlayerMaxHealth
-	LDA PlayerHealth
-	CMP PlayerHealthValueByHeartCount, Y
-	BPL CheckPlayer2Joypad_CheckDown
-
-	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
-
-	LDY PlayerMaxHealth
-	LDA PlayerHealth
-	CLC
-	ADC #$10
-	STA PlayerHealth
-
-CheckPlayer2Joypad_CheckDown:
-	LDA Player2JoypadPress
-	AND #ControllerInput_Down
-	BEQ CheckPlayer2Joypad_CheckStart
-
-	LDA PlayerHealth
-	AND #$F0
-	BEQ CheckPlayer2Joypad_CheckStart
-
-	LDA #DPCM_PlayerHurt
-	STA DPCMQueue
-
-	LDA PlayerHealth
-	SEC
-	SBC #$10
-	STA PlayerHealth
-
-CheckPlayer2Joypad_CheckStart:
-	LDA Player2JoypadPress
-	AND #ControllerInput_Start
-	BEQ CheckPlayer2Joypad_CheckButtonA
-
-	LDX #$FF
-	LDA StopwatchTimer
-	BEQ CheckPlayer2Joypad_SetStopwatchTimer
-
-	INX
-
-CheckPlayer2Joypad_SetStopwatchTimer:
-	STX StopwatchTimer
-
-CheckPlayer2Joypad_CheckButtonA:
-	LDA Player2JoypadPress
-	AND #ControllerInput_A
-	BEQ CheckPlayer2Joypad_CheckLeftRight
-
-	LDA Player2JoypadHeld
-	AND #ControllerInput_B
-	BEQ CheckPlayer2Joypad_NoButtonB
-
-	JSR DebugRandomObject
-	BNE CheckPlayer2Joypad_CheckLeftRight
-
-CheckPlayer2Joypad_NoButtonB:
-	JSR RandomCarryObject
-
-CheckPlayer2Joypad_CheckLeftRight:
-	LDA Player2JoypadPress
-	AND #ControllerInput_Right | ControllerInput_Left
-	BEQ CheckPlayer2Joypad_Exit
-	CMP #ControllerInput_Right | ControllerInput_Left
-	BEQ CheckPlayer2Joypad_Exit
-
-	CLC
-	ADC CurrentCharacter
-	ADC CurrentCharacter
-
-	TAY
-	LDA ChangeCharacterOffsets, Y
-
-	LDX #$18
-	STX ChangeCharacterTimer
-	LDX #$08
-	STX ChangeCharacterPoofTimer
-
-	BNE CheckSetCurrentCharacter
-
-CheckPlayer2Joypad_Exit:
-	RTS
-
-;
-; Changes the current character
-;
-; Input
-;   A = target character
-;
-CheckSetCurrentCharacter:
-	CMP CurrentCharacter
-	BNE SetCurrentCharacter
-
-	RTS
-
-SetCurrentCharacter:
-	STA CurrentCharacter
-
-	LDA GravityWithJumpButton
-	PHA
-
-	LDX CurrentCharacter
-	LDY StatOffsetsRAM, X
-	LDX #$00
-SetCurrentCharacter_StatsLoop:
-	LDA StatOffsetsRAM + CharacterStats-StatOffsets, Y
-	STA CharacterStatsRAM, X
-	INY
-	INX
-	CPX #$17
-	BCC SetCurrentCharacter_StatsLoop
-
-	LDA CurrentCharacter
-	ASL A
-	ASL A
-	TAY
-	LDX #$00
-SetCurrentCharacter_PaletteLoop:
-	LDA StatOffsetsRAM + CharacterPalette-StatOffsets, Y
-	STA RestorePlayerPalette0, X
-	INY
-	INX
-	CPX #$04
-	BCC SetCurrentCharacter_PaletteLoop
-
-	; load carry offsets
-	LDY CurrentCharacter
-	LDA CarryYOffsetsRAM + CarryYOffsetBigLo-CarryYOffsets, Y
-	STA ItemCarryYOffsetsRAM
-	LDA CarryYOffsetsRAM + CarryYOffsetSmallLo-CarryYOffsets, Y
-	STA ItemCarryYOffsetsRAM + $07
-	LDA CarryYOffsetsRAM + CarryYOffsetBigHi-CarryYOffsets, Y
-	STA ItemCarryYOffsetsRAM + $0E
-	LDA CarryYOffsetsRAM + CarryYOffsetSmallHi-CarryYOffsets, Y
-	STA ItemCarryYOffsetsRAM + $15
-
-	; interrupt floating if this character can't do it
-	LDA JumpFloatLength
-	BEQ SetCurrentCharacter_SetJumpFloatTimer
-
-	; if already floating, keep going
-	CMP JumpFloatTimer
-	BCC SetCurrentCharacter_CheckGravityChange
-
-SetCurrentCharacter_SetJumpFloatTimer:
-	STA JumpFloatTimer
-
-SetCurrentCharacter_CheckGravityChange:
-	; check whether gravity is increasing
-	PLA
-	SEC
-	SBC GravityWithJumpButton
-	BEQ SetCurrentCharacter_Update
-
-	; stash velocity delta in X
-	TAX
-
-	; check whether y-velocity is negative
-	LDA PlayerYVelocity
-	BPL SetCurrentCharacter_Update
-
-	CPX #$00
-	BPL SetCurrentCharacter_ClampYVelocity
-
-	; scale y-velocity based on difference in gravity
-	EOR #$FF
-	CLC
-	ADC #$01
-
-	DEX
-SetCurrentCharacter_ScaleVelocityYUp_Loop:
-	ASL
-	INX
-	BEQ SetCurrentCharacter_ScaleVelocityYUp_Loop
-
-	EOR #$FF
-	STA PlayerYVelocity
-
-	JMP SetCurrentCharacter_Update
-
-SetCurrentCharacter_ClampYVelocity:
-	LDA PlayerYVelocity
-	CMP JumpHeightRunning
-
-	BPL SetCurrentCharacter_Update
-
-	LDA JumpHeightStandingCarrying
-	STA PlayerYVelocity
-
-SetCurrentCharacter_Update:
-	INC SkyFlashTimer
-
-	; update chr for character
-	JSR LoadCharacterCHRBanks
-
-	LDA #DPCM_PlayerDeath
-	STA DPCMQueue
-
-SetCurrentCharacter_Exit:
-	RTS
-
-
-RandomCarryObjectTypes:
-	.db #Enemy_VegetableSmall
-	.db #Enemy_VegetableLarge
-	.db #Enemy_Shell
-	.db #Enemy_Bomb
-	.db #Enemy_ShyguyRed
-	.db #Enemy_Tweeter
-	.db #Enemy_SnifitRed
-	.db #Enemy_Egg
-
-; bit 7: put in player's hands
-; bit 6: set enemy timer
-; bit 5: start at bottom of screen
-; bit 4:
-; bit 3:
-; bit 2:
-; bit 1: set thrown flag
-; bit 0: disable velocity reset
-RandomCarryObjectAttributes:
-	.db %10000000
-	.db %10000000
-	.db %10000000
-	.db %11000000
-	.db %10000001
-	.db %10000001
-	.db %10000001
-	.db %10000001
-
-
-RandomCarryObject:
-	LDA PlayerState
-	BNE RandomCarryObject_Exit
-	LDA HoldingItem
-	BNE RandomCarryObject_Exit
-
-	LDA byte_RAM_10
-	LSR A
-	LSR A
-	LSR A
-	AND #$07
-	TAX
-	LDA RandomCarryObjectAttributes, X
-	STA CreateObjectAttributes
-	LDA RandomCarryObjectTypes, X
-	STA CreateObjectType
-
-RandomCarryObject_Exit:
-	RTS
-
-
-DebugRandomObjectTypes:
-	.db #Enemy_Bomb
-	.db #Enemy_Bomb
-	.db #Enemy_POWBlock
-	.db #Enemy_POWBlock
-	.db #Enemy_POWBlock
-	.db #Enemy_Starman
-	.db #Enemy_Starman
-	.db #Enemy_Starman
-
-DebugRandomObjectAttributes:
-	.db %01000010
-	.db %01000010
-	.db %00000010
-	.db %00000010
-	.db %00000010
-	.db %00100010
-	.db %00100010
-	.db %00100010
-
-
-DebugRandomObject:
-	LDA byte_RAM_10
-	LSR A
-	LSR A
-	LSR A
-	AND #$07
-	TAX
-	LDA DebugRandomObjectAttributes, X
-	STA CreateObjectAttributes
-	LDA DebugRandomObjectTypes, X
-	STA CreateObjectType
-	RTS
-ENDIF

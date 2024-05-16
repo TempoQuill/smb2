@@ -423,26 +423,12 @@ ProcessDPCMQueue_Exit:
 
 ProcessDPCMQueue_Part2:
 	STA DPCMPlaying
-IFDEF EXPAND_MUSIC
-	CMP #$7E
-	BNE ProcessDPCMQueue_LookUpSample
-
-	LDA #$A0
-	STA DPCMTimer
-	RTS
-
-ProcessDPCMQueue_LookUpSample:
-ENDIF
 	LDY #$00
 
-IFNDEF EXPAND_MUSIC
 ProcessDPCMQueue_PointerLoop:
 	INY
 	LSR A
 	BCC ProcessDPCMQueue_PointerLoop
-ELSE
-	TAY
-ENDIF
 
 	LDA DMCFreqTable - 1, Y
 	STA DMC_FREQ
@@ -461,24 +447,24 @@ ENDIF
 
 
 DMCStartTable:
-	.db (DPCMSampleData_DoorOpenBombBom - DPCMSampleData)/64 ; $4F
-	.db (DPCMSampleData_DrumSample - DPCMSampleData)/64 ; $60
-	.db (DPCMSampleData_PlayerHurt - DPCMSampleData)/64 ; $4B
-	.db (DPCMSampleData_ItemPull - DPCMSampleData)/64 ; $00
-	.db (DPCMSampleData_BossDeath - DPCMSampleData)/64 ; $31
-	.db (DPCMSampleData_DrumSample - DPCMSampleData)/64 ; $60
-	.db (DPCMSampleData_BossHurt - DPCMSampleData)/64 ; $0E
-	.db (DPCMSampleData_PlayerDeath - DPCMSampleData)/64 ; $1D
+	.db $4F
+	.db $60
+	.db $4B
+	.db $00
+	.db $31
+	.db $60
+	.db $0E
+	.db $1D
 
 DMCLengthTable:
-	.db (DPCMSampleDataEnd_DoorOpenBombBom - DPCMSampleData_DoorOpenBombBom)/16 ; $43
-	.db (DPCMSampleDataEnd_DrumSample_A - DPCMSampleData_DrumSample)/16 ; $14
-	.db (DPCMSampleDataEnd_PlayerHurt - DPCMSampleData_PlayerHurt)/16 ; $10
-	.db (DPCMSampleDataEnd_ItemPull - DPCMSampleData_ItemPull)/16 ; $38
-	.db (DPCMSampleDataEnd_BossDeath - DPCMSampleData_BossDeath)/16 ; $48
-	.db (DPCMSampleDataEnd_DrumSample_B - DPCMSampleData_DrumSample)/16 ; $28
-	.db (DPCMSampleDataEnd_BossHurt - DPCMSampleData_BossHurt)/16 ; $3C
-	.db (DPCMSampleDataEnd_PlayerDeath - DPCMSampleData_PlayerDeath)/16 ; $50
+	.db $43
+	.db $14
+	.db $10
+	.db $38
+	.db $48
+	.db $28
+	.db $3C
+	.db $50
 
 DMCFreqTable:
 	.db $0E
@@ -530,15 +516,10 @@ ProcessMusicQueue_MusicQueue1:
 	STY MusicPlaying2
 	LDY #$FF
 
-IFNDEF EXPAND_MUSIC
 ProcessMusicQueue_FirstPointerLoop:
 	INY
 	LSR A
 	BCC ProcessMusicQueue_FirstPointerLoop
-ELSE
-	TAY
-	DEY
-ENDIF
 
 ProcessMusicQueue_ReadFirstPointer:
 	LDA MusicPointersFirstPart, Y
@@ -572,16 +553,11 @@ ProcessMusicQueue_Part2:
 	LDY #$00
 	STY MusicPlaying1
 
-IFNDEF EXPAND_MUSIC
 ProcessMusicQueue_PointerLoop:
 	INY
 	LSR A
 	BCC ProcessMusicQueue_PointerLoop
-ELSE
-	TAY
-ENDIF
 
-IFNDEF EXPAND_MUSIC
 ProcessMusicQueue_ReadHeader:
 	LDA MusicPartPointers - 1, Y
 	TAY
@@ -598,48 +574,8 @@ ProcessMusicQueue_ReadHeader:
 	LDA MusicPartPointers + 5, Y
 	STA CurrentMusicNoiseOffset
 	STA CurrentMusicNoiseStartOffset
-IFDEF PROTOTYPE_MUSIC_UNDERGROUND
-	LDA MusicPartPointers + 6, Y
-ENDIF
 	STA CurrentMusicDPCMOffset
 	STA CurrentMusicDPCMStartOffset
-ENDIF
-
-IFDEF EXPAND_MUSIC
-ProcessMusicQueue_ReadHeader:
-	LDA MusicPartPointers - 1, Y
-	TAY
-
-	LDA MusicHeaderPointersLo, Y
-	STA byte_RAM_0
-	LDA MusicHeaderPointersHi, Y
-	STA byte_RAM_0+1
-
-	LDY #$00
-
-	LDA (byte_RAM_0), Y
-	STA MusicTempoSetting
-	INY
-	LDA (byte_RAM_0), Y
-	STA CurrentMusicPointer
-	INY
-	LDA (byte_RAM_0), Y
-	STA CurrentMusicPointer + 1
-	INY
-	LDA (byte_RAM_0), Y
-	STA CurrentMusicTriangleOffset
-	INY
-	LDA (byte_RAM_0), Y
-	STA CurrentMusicSquare1Offset
-	INY
-	LDA (byte_RAM_0), Y
-	STA CurrentMusicNoiseOffset
-	STA CurrentMusicNoiseStartOffset
-	INY
-	LDA (byte_RAM_0), Y
-	STA CurrentMusicDPCMOffset
-	STA CurrentMusicDPCMStartOffset
-ENDIF
 
 	LDA #$01
 	STA MusicSquare2NoteLength
@@ -651,10 +587,6 @@ ENDIF
 	LDA #$00
 	STA CurrentMusicSquare2Offset
 	STA MusicSquare1NoteSweep
-IFDEF EXPAND_MUSIC
-	STA MusicSquare1NoteBend
-	STA MusicSquare2NoteBend
-ENDIF
 
 	LDA #%00001011
 	STA SND_CHN
@@ -682,11 +614,7 @@ ProcessMusicQueue_EndOfSegment:
 	CMP #Music2_EndingAndCast
 	BEQ ProcessMusicQueue_ThenSetNextPart
 
-IFNDEF EXPAND_MUSIC
 	AND #Music1_Overworld | Music1_Inside | Music1_Subspace
-ELSE
-	JSR CheckStopMusic
-ENDIF
 	BEQ StopMusic
 
 	LDA MusicResume1
@@ -730,21 +658,15 @@ ProcessMusicQueue_Square2Note:
 	TAY
 	BNE ProcessMusicQueue_Square2StartNote
 
-	LDA MusicSquareInstrumentStartOffset
+	LDA #0
 	JMP ProcessMusicQueue_Square2UpdateNoteOffset
 
 ProcessMusicQueue_Square2StartNote:
 	LDA MusicSquare2NoteStartLength
-	; seems like the next line should be LDX MusicSquareEnvelope based on the equivalent code for square 1?
-	LDX MusicSquareInstrumentStartOffset ; always overridden in the following subroutine...?
 	JSR SetInstrumentStartOffset
 
 ProcessMusicQueue_Square2UpdateNoteOffset:
 	STA MusicSquare2InstrumentOffset
-
-IFDEF EXPAND_MUSIC
-	JSR CheckSquare2NoteBend
-ENDIF
 
 	JSR SetSquare2VolumeAndSweep
 
@@ -755,15 +677,6 @@ ProcessMusicQueue_Square2ContinueNote:
 ProcessMusicQueue_Square2SustainNote:
 	LDX SoundEffectPlaying1
 	BNE ProcessMusicQueue_Square1
-
-IFDEF EXPAND_MUSIC
-	LDA MusicSquare2NoteBend
-	BEQ ProcessMusicQueue_LoadSquare2InstrumentOffset
-
-	LDA MusicSquare2NoteStartLength
-	LDX #$04
-	JSR UpdateNoteBend
-ENDIF
 
 ProcessMusicQueue_LoadSquare2InstrumentOffset:
 	LDY MusicSquare2InstrumentOffset
@@ -822,20 +735,15 @@ ProcessMusicQueue_Square1Note:
 
 	BNE ProcessMusicQueue_Square1StartNote
 
-	LDA MusicSquareInstrumentStartOffset
+	LDA #0
 	JMP ProcessMusicQueue_Square1UpdateNoteOffset
 
 ProcessMusicQueue_Square1StartNote:
 	LDA MusicSquare1NoteStartLength
-	LDX MusicSquareEnvelope ; always overridden in the following subroutine...?
 	JSR SetInstrumentStartOffset
 
 ProcessMusicQueue_Square1UpdateNoteOffset:
 	STA MusicSquare1InstrumentOffset
-
-IFDEF EXPAND_MUSIC
-	JSR CheckSquare1NoteBend
-ENDIF
 
 	JSR SetSquare1VolumeAndSweep
 
@@ -846,15 +754,6 @@ ProcessMusicQueue_Square1ContinueNote:
 ProcessMusicQueue_Square1SustainNote:
 	LDA SoundEffectPlaying2
 	BNE ProcessMusicQueue_Triangle
-
-IFDEF EXPAND_MUSIC
-	LDA MusicSquare1NoteBend
-	BEQ ProcessMusicQueue_LoadSquare1InstrumentOffset
-
-	LDX #$00
-	LDA MusicSquare1NoteStartLength
-	JSR UpdateNoteBend
-ENDIF
 
 ProcessMusicQueue_LoadSquare1InstrumentOffset:
 	LDY MusicSquare1InstrumentOffset
@@ -927,28 +826,10 @@ ProcessMusicQueue_TriangleSetLength:
 	STA TRI_LINEAR
 
 ProcessMusicQueue_NoiseDPCM:
-IFNDEF EXPAND_MUSIC
-	IFNDEF PROTOTYPE_MUSIC_UNDERGROUND
-		IFNDEF PROTOTYPE_MUSIC_STARMAN
-			; skip to DPCM for underground/invincibility music
-			LDA MusicPlaying1
-			AND #Music1_Inside | Music1_Invincible
-			BNE ProcessMusicQueue_DPCM
-		ELSE
-			; skip to DPCM for underground music ONLY
-			LDA MusicPlaying1
-			AND #Music1_Inside
-			BNE ProcessMusicQueue_DPCM
-		ENDIF
-	ELSE
-		IFNDEF PROTOTYPE_MUSIC_STARMAN
-			; no starman, underground
-			LDA MusicPlaying1
-			AND #Music1_Invincible
-			BNE ProcessMusicQueue_DPCM
-		ENDIF
-	ENDIF
-ENDIF
+	; skip to DPCM for underground/invincibility music
+	LDA MusicPlaying1
+	AND #Music1_Inside | Music1_Invincible
+	BNE ProcessMusicQueue_DPCM
 
 ProcessMusicQueue_Noise:
 	LDA CurrentMusicNoiseOffset
@@ -994,17 +875,11 @@ ProcessMusicQueue_NoiseLoopSegment:
 	JMP ProcessMusicQueue_NoiseByte
 
 ProcessMusicQueue_NoiseEnd:
-IFNDEF EXPAND_MUSIC
 	LDA MusicPlaying1
-	IFNDEF PROTOTYPE_MUSIC_STARMAN
-		AND #Music1_Inside | Music1_Invincible
-	ELSE
-		AND #Music1_Inside
-	ENDIF
+	AND #Music1_Inside | Music1_Invincible
 	BNE ProcessMusicQueue_DPCM
 
 	RTS
-ENDIF
 
 ProcessMusicQueue_DPCM:
 	LDA CurrentMusicDPCMOffset
@@ -1033,9 +908,7 @@ ProcessMusicQueue_DPCMNote:
 	; POI: This left shift precludes using the first DPCM sample (bomb explosion) in the DPCM track.
 	; This could be to allow $80 for a "rest" note on the DPCM track, but none of the in-game music
 	; takes advantage of that.
-IFNDEF EXPAND_MUSIC
 	ASL A
-ENDIF
 	STA DPCMQueue
 	JSR ProcessDPCMQueue
 
@@ -1313,15 +1186,9 @@ PlayNote_CheckSquareChorus:
 	CMP #$E0
 	BEQ PlayNote_SetFrequency_Square2Detuned
 
-IFDEF EXPAND_MUSIC
-	LDA MusicSquare1NoteBend, X
-	BNE NoteBendStashFrequency
-ENDIF
-
 PlayNote_SetFrequency:
 	LDA NextFrequencyLo
 	STA SQ1_LO, X
-	STA MusicSquare1Lo, X ; unused
 	LDA NextFrequencyHi
 	ORA #$08
 	STA SQ1_HI, X
@@ -1332,7 +1199,6 @@ PlayNote_SetFrequency_Square2Detuned:
 	SEC
 	SBC #$02
 	STA SQ2_LO
-	STA MusicSquare2Lo
 	LDA NextFrequencyHi
 	ORA #$08
 	STA SQ2_HI
@@ -1365,113 +1231,6 @@ PlayTriangleNote:
 	LDX #APUOffset_Triangle
 	BNE PlayNote
 
-
-IFDEF EXPAND_MUSIC
-;
-; Determines whether the currently playing track should stop
-;
-; Input
-;   A = MusicPlaying2
-;
-CheckStopMusic:
-	CMP #Music1_Overworld
-	BEQ CheckStopMusic_Resume
-	CMP #Music1_Inside
-	BEQ CheckStopMusic_Resume
-	CMP #Music1_Subspace
-	BEQ CheckStopMusic_Resume
-
-CheckStopMusic_Stop:
-	LDA #$00
-	RTS
-
-CheckStopMusic_Resume:
-	LDA #$01
-	RTS
-
-
-;
-; Reads ahead to see if we have a note bend
-;
-CheckSquare2NoteBend:
-	LDY CurrentMusicSquare2Offset
-	LDA (CurrentMusicPointer), Y
-	CMP #$FF
-	BNE CheckSquare2NoteBend_Exit
-
-	INC CurrentMusicSquare2Offset
-
-	LDA MusicSquare2Lo
-	STA MusicSquare2NoteBend
-
-	PLA
-	PLA
-	JMP ProcessMusicQueue_Square2NextOffset
-
-CheckSquare2NoteBend_Exit:
-	RTS
-
-
-;
-; Reads ahead to see if we have a note bend
-;
-CheckSquare1NoteBend:
-	LDY CurrentMusicSquare1Offset
-	LDA (CurrentMusicPointer), Y
-	CMP #$FF
-	BNE CheckSquare1NoteBend_Exit
-
-	INC CurrentMusicSquare1Offset
-
-	LDA MusicSquare1Lo
-	STA MusicSquare1NoteBend
-
-	PLA
-	PLA
-	JMP ProcessMusicQueue_Square1NextOffset
-
-CheckSquare1NoteBend_Exit:
-	RTS
-
-
-NoteBendStashFrequency:
-	; If bend is in effect, this stores the last set frequency
-	LDA <NextFrequencyLo
-	STA MusicSquare1Lo, X
-	RTS
-
-
-;
-; Updates note bend
-;
-; Input
-;   A = rest time remaining
-;   X = channel
-;       $00: square 1
-;       $04: square 2
-;
-UpdateNoteBend:
-	AND #%00000011
-	CMP #$03
-	BEQ UpdateNoteBend_AfterDecrement
-
-	DEC MusicSquare1NoteBend, X
-
-UpdateNoteBend_AfterDecrement:
-	LDA MusicSquare1NoteBend, X
-	CMP MusicSquare1Lo, X
-	BCS UpdateNoteBend_Exit
-
-	LDA #$00
-	STA MusicSquare1NoteBend, X
-	LDA MusicSquare1Lo, X
-
-UpdateNoteBend_Exit:
-	STA SQ1_LO, X
-	RTS
-ENDIF
-
-
 ;
 ; -------------------------------------------------------------------------
 ; Various bits of the music engine have been extracted into separate files;
@@ -1481,21 +1240,11 @@ ENDIF
 ; Frequency table for notes; standard between various Mario games
 .include "src/music/frequency-table.asm";
 
-; Unused space in the original ($875F - $8EFF)
-unusedSpace $8F00, $FF
-
 ; Note lengths for various BPM settings
 .include "src/music/note-lengths.asm";
 
-; Unused space in the original ($8FB3 - $8FFF)
-unusedSpace $9000, $FF
-
 ; Pointers to music segments
-IFNDEF EXPAND_MUSIC
-	.include "src/music/music-part-pointers.asm"
-ELSE
-	.include "src/music/music-part-pointers-expanded.asm"
-ENDIF
+.include "src/music/music-part-pointers.asm"
 
 ; Headers for songs (BPM, tracks to use, etc)
 .include "src/music/music-headers.asm"

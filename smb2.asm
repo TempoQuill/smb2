@@ -9,18 +9,8 @@
 .include "constants.asm"
 
 .ignorenl
-INES_MAPPER = MAPPER_MMC3
-IFDEF FME7
-	INES_MAPPER = MAPPER_FME7
-ENDIF
-IFDEF MMC5
-	INES_MAPPER = MAPPER_MMC5
-ENDIF
-IFDEF FOURSCREEN
-	MIRROR_4SCREEN = %1000
-ELSE
+INES_MAPPER = MAPPER_MMC5
 	MIRROR_4SCREEN = %0000
-ENDIF
 IFDEF SM_USA
 	NAMETABLE_MIRRORING = %0001
 ELSE
@@ -38,26 +28,12 @@ ELSE
 	.db 8 ; number of 16KB PRG-ROM pages
 ENDIF
 
-IFDEF EXPAND_CHR
-	.db 32
-ELSE
 	.db 16 ; number of 8KB CHR-ROM pages
-ENDIF
 
 .db ((INES_MAPPER & %00001111) << 4) | MIRROR_4SCREEN | NAMETABLE_MIRRORING ; mapper (lower nybble) and mirroring
-IF INES_MAPPER == MAPPER_FME7
-	.db (INES_MAPPER & %11110000) | %1000 ; mapper (upper nybble) and iNES 2.0
-	.dsb 2, $00
-	.db $77 ; flags 10
-	.dsb 5, $00 ; clear the remaining bytes
-ELSEIF INES_MAPPER == MAPPER_MMC5
 	.dsb 3, $00
 	.db $70 ; flags 10
 	.dsb 5, $00 ; clear the remaining bytes
-ELSE ; INES_MAPPER == MAPPER_MMC3
-	.db INES_MAPPER & %11110000 ; mapper (upper nybble)
-	.dsb 8, $00 ; clear the remaining bytes
-ENDIF
 
 ; -----------------------------------------
 ; Add macros
@@ -65,14 +41,10 @@ ENDIF
 
 ; -----------------------------------------
 ; Add definitions
-.enum $0000
 .include "src/defs.asm"
-.ende
 
 ; Add RAM definitions
-.enum $0000
 .include "src/ram.asm"
-.ende
 
 ; -----------------------------------------
 ; Add each of the 16 banks.
@@ -141,7 +113,7 @@ ENDIF
 ; ----------------------------------------
 ; extra PRG-ROM pages (8 bank pairs)
 IFDEF EXPAND_PRG
-.dsb (8 * $4000), $ff
+.include "src/audio.asm"
 ENDIF
 
 ; ----------------------------------------
@@ -162,8 +134,3 @@ ELSE
 .incbin "smusa.chr"
 ENDIF
 
-; ----------------------------------------
-; extra CHR-ROM pages
-IFDEF EXPAND_CHR
-.dsb (16 * $2000), $00
-ENDIF

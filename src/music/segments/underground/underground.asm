@@ -138,7 +138,6 @@ MusicDataUnderground_Triangle:
 	.db $30
 
 MusicDataUnderground_DPCM:
-IFNDEF EXPAND_MUSIC
 	.db $85, $01
 	.db $8D, $10
 	.db $8E, $10
@@ -146,12 +145,3 @@ IFNDEF EXPAND_MUSIC
 	.db $88, $10
 	.db $84, $01, $01, $01
 	.db $00
-ELSE
-	.db $85, $02
-	.db $8D, $06
-	.db $8E, $06
-	.db $84, $06
-	.db $88, $06
-	.db $84, $02, $02, $02
-	.db $00
-ENDIF
