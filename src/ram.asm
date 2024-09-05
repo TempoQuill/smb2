@@ -2202,6 +2202,3 @@ MMC3_IRQLatch = $c000
 MMC3_IRQReload = $c001
 MMC3_IRQDisable = $e000
 MMC3_IRQEnable = $e001
-
-FME7_Command = $8000
-FME7_Parameter = $a000

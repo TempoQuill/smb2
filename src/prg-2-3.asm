@@ -2940,13 +2940,6 @@ TrouterJumpVelocityY:
 	.db $CC ; $9
 	.db $D2 ; $A
 	.db $D8 ; $B
-; They didn't even bother this close to the bottom of the screen!
-IFDEF EXPAND_TABLES
-	.db $DF ; $C
-	.db $E6 ; $D
-	.db $EF ; $E
-	.db $F8 ; $F
-ENDIF
 
 TrouterMaxY:
 	.db $92 ; vertical level
@@ -5552,9 +5545,6 @@ EnemyTilemap1:
 	; Spark
 	.db $A6, $A6 ; $B6
 	.db $AB, $AB ; $B8
-IFDEF EXPAND_TABLES
-	unusedSpace EnemyTilemap1 + $100, $FB
-ENDIF
 
 ;
 ; Enemy Animation table
@@ -6662,9 +6652,6 @@ EnemyTilemap2:
 	; Clawgrip Rock
 	.db $25, $27 ; $D6
 	.db $25, $27 ; $D8
-IFDEF EXPAND_TABLES
-	unusedSpace EnemyTilemap2 + $100, $FB
-ENDIF
 
 
 EnemyInit_Clawgrip:

@@ -110,9 +110,6 @@ World1SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $25, $10, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World1SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 2
@@ -167,9 +164,6 @@ World2SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $30, $23, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World2SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 3
@@ -224,9 +218,6 @@ World3SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $2B, $10, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World3SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 4
@@ -281,9 +272,6 @@ World4SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $27, $16, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World4SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 5
@@ -338,9 +326,6 @@ World5SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $16, $0F ; $1C
 	.db $FF, $16, $30, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World5SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 6
@@ -395,9 +380,6 @@ World6SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $30, $23, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World6SpritePalettes + $30, $FF
-ENDIF
 
 ;
 ; #### World 7
@@ -452,9 +434,6 @@ World7SpritePalettes:
 	.db $FF, $30, $16, $0F ; $18
 	.db $FF, $30, $10, $0F ; $1C
 	.db $FF, $30, $2A, $0F ; $20
-IFDEF EXPAND_TABLES
-	unusedSpace World7SpritePalettes + $30, $FF
-ENDIF
 
 ; -----
 
@@ -528,9 +507,6 @@ World1GroundTilesHorizontal:
 	.db $00, $A0, $A0, $99 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World1GroundTilesHorizontal + $40, $00
-ENDIF
 
 World1GroundTilesVertical:
 	.db $00, $9D, $9E, $C6 ; $00
@@ -541,9 +517,6 @@ World1GroundTilesVertical:
 	.db $00, $00, $A0, $00 ; $05
 	.db $00, $93, $9E, $C6 ; $06
 	.db $00, $40, $9E, $C6 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World1GroundTilesVertical + $40, $00
-ENDIF
 
 World2GroundTilesHorizontal:
 	.db $00, $99, $99, $99 ; $00
@@ -554,9 +527,6 @@ World2GroundTilesHorizontal:
 	.db $00, $D6, $9B, $18 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World2GroundTilesHorizontal + $40, $00
-ENDIF
 
 World2GroundTilesVertical:
 	.db $00, $9D, $9E, $C6 ; $00
@@ -567,9 +537,6 @@ World2GroundTilesVertical:
 	.db $00, $00, $00, $00 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World2GroundTilesVertical + $40, $00
-ENDIF
 
 World3GroundTilesHorizontal:
 	.db $00, $99, $D5, $00 ; $00
@@ -580,9 +547,6 @@ World3GroundTilesHorizontal:
 	.db $00, $A0, $A0, $99 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World3GroundTilesHorizontal + $40, $00
-ENDIF
 
 World3GroundTilesVertical:
 	.db $00, $C6, $9E, $9D ; $00
@@ -593,9 +557,6 @@ World3GroundTilesVertical:
 	.db $00, $00, $A0, $00 ; $05
 	.db $00, $40, $9E, $C6 ; $06
 	.db $00, $06, $A0, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World3GroundTilesVertical + $40, $00
-ENDIF
 
 World4GroundTilesHorizontal:
 	.db $00, $99, $D5, $00 ; $00
@@ -606,9 +567,6 @@ World4GroundTilesHorizontal:
 	.db $00, $0A, $0A, $08 ; $05
 	.db $00, $1F, $1F, $1F ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World4GroundTilesHorizontal + $40, $00
-ENDIF
 
 World4GroundTilesVertical:
 	.db $00, $C6, $99, $9D ; $00
@@ -619,9 +577,6 @@ World4GroundTilesVertical:
 	.db $00, $18, $18, $18 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World4GroundTilesVertical + $40, $00
-ENDIF
 
 World5GroundTilesHorizontal:
 	.db $00, $99, $D5, $40 ; $00
@@ -632,9 +587,6 @@ World5GroundTilesHorizontal:
 	.db $00, $A0, $A0, $99 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World5GroundTilesHorizontal + $40, $00
-ENDIF
 
 World5GroundTilesVertical:
 	.db $00, $9D, $9E, $C6 ; $00
@@ -645,9 +597,6 @@ World5GroundTilesVertical:
 	.db $00, $00, $A0, $00 ; $05
 	.db $00, $93, $9E, $C6 ; $06
 	.db $00, $40, $9E, $C6 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World5GroundTilesVertical + $40, $00
-ENDIF
 
 World6GroundTilesHorizontal:
 	.db $00, $99, $99, $99 ; $00
@@ -658,9 +607,6 @@ World6GroundTilesHorizontal:
 	.db $00, $D6, $9B, $18 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World6GroundTilesHorizontal + $40, $00
-ENDIF
 
 World6GroundTilesVertical:
 	.db $00, $9D, $9E, $C6 ; $00
@@ -671,9 +617,6 @@ World6GroundTilesVertical:
 	.db $00, $00, $00, $00 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World6GroundTilesVertical + $40, $00
-ENDIF
 
 World7GroundTilesHorizontal:
 	.db $00, $9C, $9C, $9C ; $00
@@ -684,9 +627,6 @@ World7GroundTilesHorizontal:
 	.db $00, $00, $00, $00 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World7GroundTilesHorizontal + $40, $00
-ENDIF
 
 World7GroundTilesVertical:
 	.db $00, $9C, $9C, $9C ; $00
@@ -697,9 +637,6 @@ World7GroundTilesVertical:
 	.db $00, $00, $A0, $00 ; $05
 	.db $00, $00, $00, $00 ; $06
 	.db $00, $00, $00, $00 ; $07
-IFDEF EXPAND_TABLES
-	unusedSpace World7GroundTilesVertical + $40, $00
-ENDIF
 
 ; -----
 
@@ -2141,9 +2078,6 @@ SingleObjects:
 	.db BackgroundTile_SubspaceMushroom2 ; $2D
 	.db BackgroundTile_WhaleEye ; $2E
 	; No entry for $2F in this table, so it uses tile $A4 due to the LDY below
-IFDEF EXPAND_TABLES
-	.db BackgroundTile_SolidWood ; $2F
-ENDIF
 
 
 ;
@@ -3228,10 +3162,8 @@ CreateObject_DrawBridgeChain_Loop:
 	RTS
 
 
-IFNDEF EXPAND_TABLES
 ; Unused space in the original ($9126 - $91FF)
 unusedSpace $9200, $FF
-ENDIF
 
 ;
 ; ## Ground setting data
@@ -3296,9 +3228,6 @@ HorizontalGroundSetData:
 
 	; Based on the level header parsing code, $1F seems like it may have been reserved for some
 	; special behavior at some point, but it doesn't appear to be implemented.
-IFDEF EXPAND_TABLES
-	.db %00000000,%00000000,%00000000,%00100100 ; $1F
-ENDIF
 
 ;
 ; #### Vertical ground set data
@@ -3349,10 +3278,6 @@ VerticalGroundSetData:
 	.db %00000000,%00000000,%00000000,%00001010 ; $1E
 	; Based on the level header parsing code, %00011111 seems like it may have been reserved for some
 	; special behavior at some point, but it doesn't appear to be implemented.
-IFDEF EXPAND_TABLES
-	.db %00000000,%00000000,%00000000,%00001010 ; $1F
-ENDIF
-
 
 ;
 ; Lookup tables for decoded level data by page

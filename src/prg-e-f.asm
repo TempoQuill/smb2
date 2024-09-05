@@ -2724,65 +2724,7 @@ UpdatePPUFBWO_CopySingleTileSkip:
 	; (If the PPU buffer points to a 0, it will terminate after this jump)
 	JMP UpdatePPUFromBufferWithOptions
 
-
-IF INES_MAPPER == MAPPER_FME7
-RESET_FME7:
-	LDA #$08 ; PRG bank 0
-	STA FME7_Command
-	LDA #%11000000
-	STA FME7_Parameter
-
-	LDA #$09 ; PRG bank 1
-	STA FME7_Command
-	LDA #$00 ; ROM bank 0
-	STA FME7_Parameter
-
-	LDA #$0A ; PRG bank 2
-	STA FME7_Command
-	LDA #$01 ; ROM bank 1
-	STA FME7_Parameter
-
-	LDA #$0B ; PRG bank 3
-	STA FME7_Command
-	LDA #$0E ; ROM bank E
-	STA FME7_Parameter
-
-	JMP RESET
-
-
-ChangeCHRBanks_FME7:
-	LDY BackgroundCHR1
-	LDA #$04
-	STA FME7_Command
-	STY FME7_Parameter
-
-	INY
-	LDA #$05
-	STA FME7_Command
-	STY FME7_Parameter
-
-	LDY BackgroundCHR2
-	LDA #$06
-	STA FME7_Command
-	STY FME7_Parameter
-
-	INY
-	LDA #$07
-	STA FME7_Command
-	STY FME7_Parameter
-
-	LDY #$03
-ChangeCHRBanks_FME7_Loop:
-	TYA
-	STA FME7_Command
-	LDA SpriteCHR1, Y
-	STA FME7_Parameter
-	DEY
-	BPL ChangeCHRBanks_FME7_Loop
-
-	RTS
-
-ELSEIF INES_MAPPER == MAPPER_MMC5
+IF INES_MAPPER == MAPPER_MMC5
 RESET_MMC5:
 	; Set PRG mode 3 and CHR mode 3
 	LDA #$03
@@ -5324,9 +5266,6 @@ TileQuads1:
 	.db $32, $34, $33, $35 ; $80
 	.db $33, $35, $33, $35 ; $84
 	.db $24, $26, $25, $27 ; $88
-IFDEF EXPAND_TABLES
-	unusedSpace TileQuads1 + $100, $FC
-ENDIF
 
 TileQuads2:
 	.db $FA, $FA, $FA, $FA ; $00
@@ -5388,9 +5327,6 @@ TileQuads2:
 	.db $6C, $54, $6D, $55 ; $E0
 	.db $32, $34, $33, $35 ; $E4
 	.db $33, $35, $33, $35 ; $E8
-IFDEF EXPAND_TABLES
-	unusedSpace TileQuads2 + $100, $FC
-ENDIF
 
 TileQuads3:
 	.db $94, $95, $94, $95 ; $00
@@ -5437,9 +5373,7 @@ TileQuads3:
 	.db $72, $73, $4A, $4B ; $A4
 	.db $40, $42, $41, $43 ; $A8
 	.db $41, $43, $41, $43 ; $AC
-IFDEF EXPAND_TABLES
-	unusedSpace TileQuads3 + $100, $FC
-ENDIF
+
 TileQuads4:
 	.db $40, $42, $41, $43 ; $00
 	.db $40, $42, $41, $43 ; $04
@@ -5466,9 +5400,6 @@ TileQuads4:
 	.db $8E, $8F, $8F, $8E ; $58
 	.db $72, $73, $73, $72 ; $5C
 	.db $44, $45, $45, $44 ; $60
-IFDEF EXPAND_TABLES
-	unusedSpace TileQuads4 + $100, $FC
-ENDIF
 
 EndOfLevelDoor: ; PPU data
 	.db $22, $D0, $04, $FC, $FC, $AD, $FA
@@ -5894,20 +5825,9 @@ RESET_VBlank2Loop:
 	LDA PPUSTATUS
 	BPL RESET_VBlank2Loop
 
-IF INES_MAPPER == MAPPER_FME7
-	LDA #$0C
-	STA FME7_Command
-	LDA #VMirror
-	STA FME7_Parameter
-ELSEIF INES_MAPPER == MAPPER_MMC5
+IF INES_MAPPER == MAPPER_MMC5
 	LDA #MMC5_VMirror
 	STA MMC5_NametableMapping
-	; Maintain location of the next subroutine
-	NOP_compat
-	NOP_compat
-	NOP_compat
-	NOP_compat
-	NOP_compat
 ELSE ;  INES_MAPPER == MAPPER_MMC3
 	LDA #VMirror
 	STA MMC3_Mirroring
@@ -5920,19 +5840,9 @@ ENDIF
 ;
 ; Switches the current CHR banks
 ;
-IF INES_MAPPER == MAPPER_FME7
-ChangeCHRBanks:
-	JMP ChangeCHRBanks_FME7
-
-	; Maintain location of the next subroutine
-	unusedSpace $FF85, $FF
-
-ELSEIF INES_MAPPER == MAPPER_MMC5
+IF INES_MAPPER == MAPPER_MMC5
 ChangeCHRBanks:
 	JMP ChangeCHRBanks_MMC5
-
-	; Maintain location of the next subroutine
-	unusedSpace $FF85, $FF
 
 ELSE ; INES_MAPPER == MAPPER_MMC3
 ChangeCHRBanks:
@@ -5985,32 +5895,12 @@ ChangeMappedPRGBank:
 ChangeMappedPRGBankWithoutSaving:
 	ASL A
 
-IF INES_MAPPER == MAPPER_FME7
-	; Change first bank
-	PHA
-	LDA #$09
-	STA FME7_Command
-	PLA
-	STA FME7_Parameter
-	ORA #$01 ; Use the bank right after this one next
-	; Change second bank
-	PHA
-	LDA #$0A
-	STA FME7_Command
-	PLA
-	STA FME7_Parameter
-
-	RTS
-
-ELSEIF INES_MAPPER == MAPPER_MMC5
+IF INES_MAPPER == MAPPER_MMC5
 	ORA #$80
 	STA MMC5_PRGBankSwitch2
 	ORA #$01
 	STA MMC5_PRGBankSwitch3
 	RTS
-
-	; Maintain location of the next subroutine
-	unusedSpace $FFA0, $FF
 
 ELSE ; INES_MAPPER == MAPPER_MMC3
 	; Change first bank
@@ -6038,13 +5928,7 @@ ENDIF
 ; - `A`: `$00` =  vertical, `$01` = horizontal
 ;
 ChangeNametableMirroring:
-IF INES_MAPPER == MAPPER_FME7
-	PHA
-	LDA #$0C
-	STA FME7_Command
-	PLA
-	STA FME7_Parameter
-ELSEIF INES_MAPPER == MAPPER_MMC5
+IF INES_MAPPER == MAPPER_MMC5
 	STA MMC5_NametableMapping
 ELSE
 	STA MMC3_Mirroring
@@ -6097,9 +5981,7 @@ ENDIF
 
 NESVectorTables:
 	.dw NMI
-IF INES_MAPPER == MAPPER_FME7
-	.dw RESET_FME7
-ELSEIF INES_MAPPER == MAPPER_MMC5
+IF INES_MAPPER == MAPPER_MMC5
 	.dw RESET_MMC5
 ELSE ; INES_MAPPER == MAPPER_MMC3
 	.dw RESET

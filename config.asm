@@ -140,14 +140,8 @@ DEBUG = 1
 ; See https://wiki.nesdev.com/w/index.php/INES#Flags_6
 ; FOURSCREEN = 1
 
-; Use FME-7 (mapper 69) instead of MMC3 (mapper 4)
-; FME7 = 1
-
 ; Pads title screen PPU data for easier modification
 ; PAD_TITLE_SCREEN_PPU_DATA = 1
-
-; Expands various lookup tables so that more values can be added
-; EXPAND_TABLES = 1
 
 ; Skip unnecessary bonus chance RAM copy
 ; BONUS_CHANCE_RAM_CLEANUP = 1
