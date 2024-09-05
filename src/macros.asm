@@ -71,8 +71,6 @@ ENDM
 ; Setting "noise" or "dpcm" to -1 will suppress output of $00 for music headers
 ; "reuse" the note length from the following header to save bytes.
 ;
-; If EXPAND_MUSIC is enabled, the $00 will always be output.
-;
 MACRO musicHeader noteLengthLabel, square2, triangle, square1, noise, dpcm
 	noteLength noteLengthLabel
 	.dw square2
@@ -87,27 +85,14 @@ MACRO musicHeader noteLengthLabel, square2, triangle, square1, noise, dpcm
 		.db (square1 - square2)
 	ENDIF
 
-	IFNDEF EXPAND_MUSIC
-		IF noise = 0
-			.db $00
-		ELSEIF noise > 0
-			.db (noise - square2)
-		ENDIF
-		IF dpcm = 0
-			.db $00
-		ELSEIF dpcm > 0
-			.db (dpcm - square2)
-		ENDIF
-	ELSE
-		IF noise <= 0
-			.db $00
-		ELSE
-			.db (noise - square2)
-		ENDIF
-		IF dpcm <= 0
-			.db $00
-		ELSE
-			.db (dpcm - square2)
-		ENDIF
+	IF noise = 0
+		.db $00
+	ELSEIF noise > 0
+		.db (noise - square2)
+	ENDIF
+	IF dpcm = 0
+		.db $00
+	ELSEIF dpcm > 0
+		.db (dpcm - square2)
 	ENDIF
 ENDM

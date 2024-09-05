@@ -5387,12 +5387,7 @@ EnemyBehavior_CheckDamagedInterrupt_SoundEffect:
 	BNE EnemyBehavior_CheckDamagedInterrupt_CheckPidgit
 
 EnemyBehavior_CheckDamagedInterrupt_BossDeathSound:
-IFDEF EXPAND_MUSIC
-	; `DPCM_BossDeath` index changed, but want to preserve addresses
-	JSR EnemyBehavior_BossDeathSound
-ELSE
 	STA DPCMQueue
-ENDIF
 
 EnemyBehavior_CheckDamagedInterrupt_CheckPidgit:
 	; killing pidgit leaves a flying carpet behind
@@ -6473,13 +6468,6 @@ EnemyBehavior_TurnAround:
 EnemyBehavior_TurnAroundExit:
 	JMP ApplyObjectPhysicsX
 
-
-IFDEF EXPAND_MUSIC
-EnemyBehavior_BossDeathSound:
-	LDA #DPCM_BossDeath
-	STA DPCMQueue
-	RTS
-ENDIF
 
 IFDEF FIX_FRYGUY_SPLIT_COUNT
 Fryguy_AccelerationX:
