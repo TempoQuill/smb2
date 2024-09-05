@@ -118,15 +118,6 @@ ENDIF
 ; Respawn at the beginning of the area instead of dying
 ; RESPAWN_INSTEAD_OF_DEATH = 1
 
-; Restore the prototype's DPCM samples and/or music;
-; NOTE: The prototype underground music requires the shortened prototype ending music to fit
-; everything in the music header table. Use EXPAND_MUSIC to remove this restriction.
-; PROTOTYPE_DPCM_SAMPLES = 1
-; PROTOTYPE_INSTRUMENTS = 1
-; PROTOTYPE_MUSIC_STARMAN = 1
-; PROTOTYPE_MUSIC_UNDERGROUND = 1
-; PROTOTYPE_MUSIC_ENDING = 1
-
 ; Include debugging tools
 ; (push Select to open the debug menu)
 ; DEBUG = 1
@@ -165,9 +156,6 @@ ENDIF
 
 ; Skip unnecessary bonus chance RAM copy
 ; BONUS_CHANCE_RAM_CLEANUP = 1
-
-; Uses an alternative pointer method for music headers to allow for more segments
-; EXPAND_MUSIC = 1
 
 ; Encode world tileset in unused 3 bits of area header byte 2
 ; AREA_HEADER_TILESET = 1

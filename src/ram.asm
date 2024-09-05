@@ -399,9 +399,7 @@ MusicSquareEnvelope: ; (unused; always overwritten)
 	.dsb 1 ; $00c0
 SoundEffect1DataOffset:
 	.dsb 1 ; $00c1
-IFNDEF EXPAND_MUSIC
 MusicSquare2Lo: ; (unused)
-ENDIF
 	.dsb 1 ; $00c2
 	.dsb 1 ; $00c3
 SoundEffectTimer2:
@@ -1603,9 +1601,6 @@ MusicDPCMNoteStartLength:
 	.dsb 1 ; $05fb
 CurrentMusicDPCMStartOffset:
 	.dsb 1 ; $05fc
-IFDEF EXPAND_MUSIC
-MusicSquare2Lo: ; needs to be +$04 relative to MusicSquare1Lo
-ENDIF
 	.dsb 1 ; $05fd (unused; written to but not read)
 	.dsb 1 ; $05fe
 CurrentMusicDPCMOffset:
