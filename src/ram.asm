@@ -2192,20 +2192,6 @@ RawJarData = $7a00
 
 RawEnemyDataAddr = $7b00
 
-;
-; Extra enhancement support for 2P debug mode controls
-; Spread around to some 'for rent' addresses
-;
-IFDEF CONTROLLER_2_DEBUG
-	UpdateJoypadsTemp = $00c6
-	CarryYOffsetsRAM = $7e00
-	StatOffsetsRAM = $7e10
-	ChangeCharacterTimer = $7e80
-	ChangeCharacterPoofTimer = $7e81
-	CreateObjectType = $7e82
-	CreateObjectAttributes = $7e83
-ENDIF
-
 ItemCarryYOffsetsRAM = $7f00
 
 MMC3_BankSelect = $8000

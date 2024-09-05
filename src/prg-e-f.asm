@@ -3147,10 +3147,6 @@ RunFrame_Common:
 
 	JSR AreaSecondaryRoutine
 
-IFDEF CONTROLLER_2_DEBUG
-	JSR AreaDebugRoutine
-ENDIF
-
 	JSR AnimateCHRRoutine
 
 	JSR SetAreaStartPage
@@ -3560,66 +3556,10 @@ CharacterTiles_PrincessJumpBody:
 DamageInvulnBlinkFrames:
 	.db $01, $01, $01, $02, $02, $04, $04, $04
 
-IFDEF CONTROLLER_2_DEBUG
-ChangePlayerPoofTiles:
-	.db $5E
-	.db $3A
-	.db $3A
-	.db $3A
-	.db $38
-	.db $38
-	.db $38
-	.db $36
-	.db $34
-ENDIF
-
 ;
 ; Renders the player sprite
 ;
 RenderPlayer:
-IFDEF CONTROLLER_2_DEBUG
-	LDA ChangeCharacterPoofTimer
-	BEQ RenderPlayer_AfterChangeCharacterPoof
-
-	DEC ChangeCharacterPoofTimer
-
-	; tile
-	LDY ChangeCharacterPoofTimer
-	LDA ChangePlayerPoofTiles, Y
-	STA SpriteDMAArea + $01
-	STA SpriteDMAArea + $05
-	STA SpriteDMAArea + $09
-	STA SpriteDMAArea + $0D
-
-	; attributes
-	LDA #ObjAttrib_Palette1
-	STA SpriteDMAArea + $02
-	STA SpriteDMAArea + $0A
-	LDA #ObjAttrib_Palette1 | ObjAttrib_16x32
-	STA SpriteDMAArea + $06
-	STA SpriteDMAArea + $0E
-
-	; y-position
-	LDA PlayerScreenYLo
-	STA SpriteDMAArea + $00
-	STA SpriteDMAArea + $04
-	CLC
-	ADC #$10
-	STA SpriteDMAArea + $08
-	STA SpriteDMAArea + $0C
-
-	; x-position
-	LDA PlayerScreenX
-	STA SpriteDMAArea + $03
-	STA SpriteDMAArea + $0B
-	CLC
-	ADC #$08
-	STA SpriteDMAArea + $07
-	STA SpriteDMAArea + $0F
-
-RenderPlayer_AfterChangeCharacterPoof:
-ENDIF
-
 	LDY_abs PlayerState
 	CPY #PlayerState_ChangingSize
 	BEQ loc_BANKF_F337
@@ -4957,21 +4897,11 @@ UpdateJoypads:
 UpdateJoypads_DoubleCheck:
 	; Work around DPCM sample bug,
 	; where some spurious inputs are read
-IFDEF CONTROLLER_2_DEBUG
-	LDY Player2JoypadPress
-	STY UpdateJoypadsTemp
-ENDIF
 	LDY Player1JoypadPress
 	JSR ReadJoypads
 
 	CPY Player1JoypadPress
 	BNE UpdateJoypads_DoubleCheck
-
-IFDEF CONTROLLER_2_DEBUG
-	LDY UpdateJoypadsTemp
-	CPY Player2JoypadPress
-	BNE UpdateJoypads_DoubleCheck
-ENDIF
 
 	LDX #$01
 
@@ -5086,9 +5016,6 @@ DoAreaReset:
 	STA ObjectCarriedOver
 	STA SubspaceTimer
 	STA SubspaceDoorTimer
-IFDEF CONTROLLER_2_DEBUG
-	STA ChangeCharacterPoofTimer
-ENDIF
 	LDX #$08
 
 DoAreaReset_EnemyLoop:

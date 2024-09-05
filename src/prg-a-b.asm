@@ -424,10 +424,6 @@ MysteryData14439:
 ; god knows what else.
 ;
 CopyCharacterStatsAndStuff:
-IFDEF CONTROLLER_2_DEBUG
-	JSR CopyCharacterStats
-ENDIF
-
 	LDX CurrentCharacter
 	LDY StatOffsets, X
 	LDX #$00
@@ -711,22 +707,6 @@ UnusedText_Blank214D:
 	.db $21, $4D, $06
 	.db $FB, $FB, $FB, $FB, $FB, $FB
 	.db $00
-
-IFDEF CONTROLLER_2_DEBUG
-;
-; Copies all character stats to RAM for hot-swapping the current character
-;
-CopyCharacterStats:
-	LDX #(MysteryData14439 - StatOffsets - 1)
-CopyCharacterStats_Loop:
-	LDA StatOffsets, X
-	STA StatOffsetsRAM, X
-	DEX
-	BPL CopyCharacterStats_Loop
-
-	RTS
-ENDIF
-
 
 IFDEF DEBUG
 	.include "src/extras/debug-a.asm"

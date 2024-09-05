@@ -120,12 +120,7 @@ ENDIF
 
 ; Include debugging tools
 ; (push Select to open the debug menu)
-; DEBUG = 1
-
-; Include controller 2 debug features
-; (@TODO: explain usage)
-; CONTROLLER_2_DEBUG = 1
-
+DEBUG = 1
 
 
 ; ----------------------------------------
