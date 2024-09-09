@@ -6839,7 +6839,7 @@ ClawgripRockHoistOffset:
 
 
 RenderSprite_Clawgrip:
-	LDA_abs byte_RAM_F4
+	LDA byte_RAM_F4
 
 	; store sprite slot
 	STA EnemyArray_B1, X
@@ -6988,7 +6988,7 @@ loc_BANK3_A2AA:
 	JSR ScreenSpriteClipping_Horizontal
 
 	LDY #$00
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 
 	LDA ObjectAttributes, X
 	PHA
@@ -7019,7 +7019,7 @@ loc_BANK3_A2D2:
 	AND #$04
 	BEQ loc_BANK3_A2E1
 
-	LDX_abs byte_RAM_F4
+	LDX byte_RAM_F4
 
 	DEC SpriteDMAArea + $C, X
 	LDX byte_RAM_12
@@ -7075,7 +7075,7 @@ loc_BANK3_A320:
 ; ---------------------------------------------------------------------------
 
 RenderSprite_ClawgripRock:
-	LDA_abs_X ObjectBeingCarriedTimer ;, X
+	LDA ObjectBeingCarriedTimer, X
 
 	ORA ObjectStunTimer, X
 	BNE loc_BANK3_A362
@@ -7207,7 +7207,7 @@ loc_BANK3_A3C7:
 	LDA Player1JoypadHeld
 	AND #ControllerInput_Right | ControllerInput_Left
 	TAY
-	AND_abs PlayerCollision
+	AND PlayerCollision
 
 	BNE loc_BANK3_A3E6
 
@@ -7468,7 +7468,7 @@ RenderSprite_Pidgit:
 	; Render Pidgit's carpet
 	JSR FindSpriteSlot
 
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 
 	LDA #ObjAttrib_Palette1 | ObjAttrib_Horizontal | ObjAttrib_16x32
 	STA ObjectAttributes, X
@@ -7694,7 +7694,7 @@ RenderSprite_Mouser_Bomb:
 	STA SpriteTempScreenX
 	ASL byte_RAM_EE
 	LDY #$00
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 RenderSprite_Mouser_Bomb_Tile:
 	LDA #$38 ; could have been $34 from tilemap 1 instead
 	JSR RenderSprite_DrawObject
@@ -7981,7 +7981,7 @@ RenderSprite_Tryclyde:
 RenderSprite_Tryclyde_DrawBody:
 	TYA
 	LDY #$30
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 	JSR RenderSprite_DrawObject
 
 	LDA #ObjAttrib_Palette1 | ObjAttrib_FrontFacing
@@ -8671,7 +8671,7 @@ EnemyBehavior_Rocket_ApplyPhysics:
 	LDA #TransitionType_Rocket
 	STA TransitionType
 	LDA #$00
-	STA_abs PlayerState
+	STA PlayerState
 
 	RTS
 
@@ -8824,7 +8824,7 @@ loc_BANK3_AC4B:
 
 	JSR FindSpriteSlot
 
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 	PLA
 	CLC
 	LDY byte_RAM_7
@@ -9260,7 +9260,7 @@ loc_BANK3_AE5C:
 	LDA EnemyArray_B1, X
 	BNE loc_BANK3_AE7C
 
-	LDA_abs byte_RAM_F4
+	LDA byte_RAM_F4
 	PHA
 	LDA SpriteTempScreenY
 	CLC
@@ -9268,12 +9268,12 @@ loc_BANK3_AE5C:
 	STA SpriteTempScreenY
 	JSR FindSpriteSlot
 
-	STY_abs byte_RAM_F4
+	STY byte_RAM_F4
 	LDA #$7C
 	JSR RenderSprite_DrawObject
 
 	PLA
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 
 loc_BANK3_AE7C:
 	LDA ObjectYLo, X
@@ -9285,7 +9285,7 @@ loc_BANK3_AE7C:
 	TYA
 	CLC
 	ADC #$08
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 	LDA byte_RAM_0
 	STA SpriteTempScreenY
 	LDA #SpriteFlags46E_Tilemap2 | SpriteFlags46E_DoubleSpeed | SpriteFlags46E_MirrorAnimation
@@ -9415,7 +9415,7 @@ loc_BANK3_AF29:
 
 loc_BANK3_AF34:
 	STA SpriteDMAArea + $D, Y
-	LDX_abs byte_RAM_F4
+	LDX byte_RAM_F4
 	LDA SpriteDMAArea + 2, X
 	STA SpriteDMAArea + 2, Y
 	STA SpriteDMAArea + 6, Y
@@ -9777,7 +9777,7 @@ loc_BANK3_B13B:
 	STA SpriteDMAArea + 6, Y
 	STA SpriteDMAArea + $A, Y
 	STA SpriteDMAArea + $E, Y
-	LDX_abs byte_RAM_F4
+	LDX byte_RAM_F4
 	LDA SpriteDMAArea, X
 	STA SpriteDMAArea + 8, Y
 	CLC
@@ -10064,7 +10064,7 @@ EnemyBehavior_WartBubble_Exit:
 
 
 RenderSprite_Wart:
-	LDA_abs byte_RAM_F4
+	LDA byte_RAM_F4
 	STA WartOAMOffsets_RAM + 2
 	STA WartOAMOffsets_RAM + 6
 	LDA byte_RAM_10
@@ -10072,7 +10072,7 @@ RenderSprite_Wart:
 	STA byte_RAM_7
 	TAY
 	LDA WartOAMOffsets_RAM, Y
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 	LDA byte_RAM_EF
 	BNE EnemyBehavior_WartBubble_Exit
 
@@ -10120,7 +10120,7 @@ RenderSprite_Wart_DrawTop:
 	STA SpriteTempScreenY
 	LDY byte_RAM_7
 	LDA WartOAMOffsets_RAM + 1, Y
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 	LDY #$A6 ; middle row: regular
 	LDA EnemyArray_B1, X
 	BNE RenderSprite_Wart_MiddleHurt
@@ -10153,7 +10153,7 @@ RenderSprite_Wart_DrawMiddle:
 	STA SpriteTempScreenY
 	LDY byte_RAM_7
 	LDA WartOAMOffsets_RAM + 2, Y
-	STA_abs byte_RAM_F4
+	STA byte_RAM_F4
 	LDY #$BA ; bottom row: standing
 	LDA ObjectXVelocity, X
 	BEQ RenderSprite_Wart_DrawBottom

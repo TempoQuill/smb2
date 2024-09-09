@@ -2346,7 +2346,7 @@ HandlePlayerState_HawkmouthEating:
 
 	JSR ApplyPlayerPhysicsY
 
-	LDA_abs PlayerCollision
+	LDA PlayerCollision
 
 	BEQ locret_BANK0_8BEB
 
@@ -6874,7 +6874,7 @@ loc_BANK1_AC0A:
 	CMP #$20
 	BCC loc_BANK1_AC37
 
-	INC_abs byte_RAM_E6
+	INC byte_RAM_E6
 
 	LDA #$A0
 	STA byte_RAM_10
@@ -6979,7 +6979,7 @@ loc_BANK1_AC8B:
 	LDA #$DA
 	STA ObjectYVelocity + 6
 
-	INC_abs byte_RAM_E6
+	INC byte_RAM_E6
 
 
 loc_BANK1_ACA4:
@@ -7238,7 +7238,7 @@ ContributorTicker:
 	CLC
 	ADC #$09
 
-	STA_abs ScreenUpdateIndex
+	STA ScreenUpdateIndex
 
 	DEC ContributorIndex
 	BPL ContributorTicker_Exit

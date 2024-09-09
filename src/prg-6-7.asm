@@ -3029,7 +3029,7 @@ CreateObject_MushroomJumpthroughPlatform_Loop:
 	STA byte_RAM_E7
 	LDA #$0D
 	STA byte_RAM_50E
-	LDA_abs byte_RAM_7
+	LDA byte_RAM_7
 
 	STA byte_RAM_50D
 	LDX byte_RAM_E8
@@ -3417,7 +3417,7 @@ ResetLevelData_Loop:
 	STA ScreenYLo
 	STA ScreenBoundaryLeftHi
 	STA ScreenBoundaryLeftLo
-	STA_abs NeedsScroll
+	STA NeedsScroll
 	RTS
 
 

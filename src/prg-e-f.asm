@@ -2366,9 +2366,9 @@ NMI_Gameplay:
 	STA PPUCTRL
 
 NMI_DrawBackgroundTilesOuterLoop:
-	LDA_abs DrawBackgroundTilesPPUAddrHi
+	LDA DrawBackgroundTilesPPUAddrHi
 	STA PPUADDR
-	LDA_abs DrawBackgroundTilesPPUAddrLo
+	LDA DrawBackgroundTilesPPUAddrLo
 	STA PPUADDR
 
 NMI_DrawBackgroundTilesInnerLoop:
@@ -2379,7 +2379,7 @@ NMI_DrawBackgroundTilesInnerLoop:
 	BNE NMI_DrawBackgroundTilesInnerLoop
 
 	LDX #$1E
-	INC_abs DrawBackgroundTilesPPUAddrLo
+	INC DrawBackgroundTilesPPUAddrLo
 
 	CPY #$3C
 	BNE NMI_DrawBackgroundTilesOuterLoop
@@ -2726,13 +2726,13 @@ UpdatePPUFBWO_CopySingleTileSkip:
 
 IF INES_MAPPER == MAPPER_MMC5
 RESET_MMC5:
-	; Set PRG mode 3 and CHR mode 3
+	; Set CHR mode 3
 	LDA #$03
-	STA MMC5_PRGMode
 	STA MMC5_CHRMode
 
-	; Enable PRG RAM writing
+	; Enable PRG RAM writing and set PRG mode 2
 	LDA #$02
+	STA MMC5_PRGMode
 	STA MMC5_PRGRAMProtect1
 	LDA #$01
 	STA MMC5_PRGRAMProtect2
@@ -2751,62 +2751,28 @@ RESET_MMC5:
 
 	; PRG bank 0
 	LDA #$80 ; ROM bank 0
-	STA MMC5_PRGBankSwitch2 ; $8000-$9FFF
+	STA MMC5_PRGBankSwitch2 ; $8000-$BFFF
 
-	; PRG bank 1
-	LDA #$81 ; ROM bank 1
-	STA MMC5_PRGBankSwitch3 ; $A000-$BFFF
+	IFDEF EXPAND_PRG
+		; PRG bank 2
+		LDA #$9E ; ROM bank E
+		STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
 
-	; PRG bank 2
-	LDA #$8E ; ROM bank E
-	STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
+		; PRG bank 3
+		LDA #$9F ; ROM bank F
+		STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
+	ELSE
+		; PRG bank 2
+		LDA #$8E ; ROM bank E
+		STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
 
-	; PRG bank 3
-	LDA #$8F ; ROM bank F
-	STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
+		; PRG bank 3
+		LDA #$8F ; ROM bank F
+		STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
+	ENDIF
 
 	JMP RESET
-
-
-ChangeCHRBanks_MMC5:
-	LDA SpriteCHR1
-	STA MMC5_CHRBankSwitch1
-
-	LDA SpriteCHR2
-	STA MMC5_CHRBankSwitch2
-
-	LDA SpriteCHR3
-	STA MMC5_CHRBankSwitch3
-
-	LDA SpriteCHR4
-	STA MMC5_CHRBankSwitch4
-
-	LDA BackgroundCHR1
-	STA MMC5_CHRBankSwitch5
-	ADC #$01
-	STA MMC5_CHRBankSwitch6
-
-	LDA BackgroundCHR2
-	STA MMC5_CHRBankSwitch7
-	ADC #$01
-	STA MMC5_CHRBankSwitch8
-
-	LDA BackgroundCHR1
-	STA MMC5_CHRBankSwitch9
-	ADC #$01
-	STA MMC5_CHRBankSwitch10
-
-	LDA BackgroundCHR2
-	STA MMC5_CHRBankSwitch11
-	ADC #$01
-	STA MMC5_CHRBankSwitch12
-
-	RTS
 ENDIF
-
-; Unused space in the original ($ED4D - $EFFF)
-unusedSpace $F000, $FF
-
 
 ;
 ; ## Tile collision bounding boxes
@@ -3502,7 +3468,7 @@ DamageInvulnBlinkFrames:
 ; Renders the player sprite
 ;
 RenderPlayer:
-	LDY_abs PlayerState
+	LDY PlayerState
 	CPY #PlayerState_ChangingSize
 	BEQ loc_BANKF_F337
 
@@ -5582,9 +5548,6 @@ IFDEF DEBUG
 	.include "src/extras/debug-f.asm"
 ENDIF
 
-; Unused space in the original ($FB36 - $FDFF)
-unusedSpace $FE00, $FF
-
 IFDEF RESET_CHR_LATCH
 CHRBank_Boss:
 	.db CHRBank_EnemiesGrass ; Mouser
@@ -5794,10 +5757,6 @@ ResetSubAreaJarLayout:
 ENDIF
 
 
-; Unused space in the original ($FE97 - $FF4F)
-unusedSpace $FF50, $FF
-
-
 ;
 ; Public RESET
 ;
@@ -5842,7 +5801,32 @@ ENDIF
 ;
 IF INES_MAPPER == MAPPER_MMC5
 ChangeCHRBanks:
-	JMP ChangeCHRBanks_MMC5
+	LDA SpriteCHR1
+	STA MMC5_CHRBankSwitch1
+
+	LDA SpriteCHR2
+	STA MMC5_CHRBankSwitch2
+
+	LDA SpriteCHR3
+	STA MMC5_CHRBankSwitch3
+
+	LDA SpriteCHR4
+	STA MMC5_CHRBankSwitch4
+
+	LDA BackgroundCHR1
+	STA MMC5_CHRBankSwitch5
+	STA MMC5_CHRBankSwitch9
+	ADC #$01
+	STA MMC5_CHRBankSwitch6
+	STA MMC5_CHRBankSwitch10
+
+	LDA BackgroundCHR2
+	STA MMC5_CHRBankSwitch7
+	STA MMC5_CHRBankSwitch11
+	ADC #$01
+	STA MMC5_CHRBankSwitch8
+	STA MMC5_CHRBankSwitch12
+	RTS
 
 ELSE ; INES_MAPPER == MAPPER_MMC3
 ChangeCHRBanks:
@@ -5898,8 +5882,6 @@ ChangeMappedPRGBankWithoutSaving:
 IF INES_MAPPER == MAPPER_MMC5
 	ORA #$80
 	STA MMC5_PRGBankSwitch2
-	ORA #$01
-	STA MMC5_PRGBankSwitch3
 	RTS
 
 ELSE ; INES_MAPPER == MAPPER_MMC3
@@ -5935,34 +5917,8 @@ ELSE
 ENDIF
 	RTS
 
-; Unused space in the original ($FFA4 - $FFEA)
-unusedSpace $FFEB, $FF
-
-; Technically you can delete the stuff from here to the vector table as well,
-; but because it looks slightly less like unused space it isn't being removed.
-
-IFDEF PRESERVE_UNUSED_SPACE
-; Not used; leftover part of FamicomBox cart title?
-UnusedTextZELDA:
-	.db 'ZELDA'
-ENDIF
-
-; Note that this is NOT CODE.
-; If the NES actually hits a BRK, the game will probably just explode.
-; If you wanted, you could write some sort of crash handler though.
 IRQ:
-IFDEF PRESERVE_UNUSED_SPACE
-	.db $DF
-	.db $E6
-	.db $00
-	.db $00
-	.db $38
-	.db $04
-	.db $01
-	.db $04
-	.db $01
-	.db $BE
-ENDIF
+	RTI
 
 ;
 ; Vectors for the NES CPU. These must ALWAYS be at $FFFA!
