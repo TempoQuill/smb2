@@ -2724,56 +2724,6 @@ UpdatePPUFBWO_CopySingleTileSkip:
 	; (If the PPU buffer points to a 0, it will terminate after this jump)
 	JMP UpdatePPUFromBufferWithOptions
 
-IF INES_MAPPER == MAPPER_MMC5
-RESET_MMC5:
-	; Set CHR mode 3
-	LDA #$03
-	STA MMC5_CHRMode
-
-	; Enable PRG RAM writing and set PRG mode 2
-	LDA #$02
-	STA MMC5_PRGMode
-	STA MMC5_PRGRAMProtect1
-	LDA #$01
-	STA MMC5_PRGRAMProtect2
-
-	; Set nametable mapping
-	LDA #%01010000
-	STA MMC5_NametableMapping
-
-	LDA #$00
-	STA MMC5_PRGBankSwitch1
-	STA MMC5_CHRBankSwitchUpper
-
-	; MMC5 Pulse channels
-	LDA #$0F
-	STA MMC5_SND_CHN
-
-	; PRG bank 0
-	LDA #$80 ; ROM bank 0
-	STA MMC5_PRGBankSwitch2 ; $8000-$BFFF
-
-	IFDEF EXPAND_PRG
-		; PRG bank 2
-		LDA #$9E ; ROM bank E
-		STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
-
-		; PRG bank 3
-		LDA #$9F ; ROM bank F
-		STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
-	ELSE
-		; PRG bank 2
-		LDA #$8E ; ROM bank E
-		STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
-
-		; PRG bank 3
-		LDA #$8F ; ROM bank F
-		STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
-	ENDIF
-
-	JMP RESET
-ENDIF
-
 ;
 ; ## Tile collision bounding boxes
 ;
@@ -5757,6 +5707,53 @@ ResetSubAreaJarLayout:
 ENDIF
 
 
+IF INES_MAPPER == MAPPER_MMC5
+RESET_MMC5:
+	; Set CHR mode 3
+	LDA #$03
+	STA MMC5_CHRMode
+
+	; Enable PRG RAM writing and set PRG mode 2
+	LDA #$02
+	STA MMC5_PRGMode
+	STA MMC5_PRGRAMProtect1
+	LDA #$01
+	STA MMC5_PRGRAMProtect2
+
+	; Set nametable mapping
+	LDA #%01010000
+	STA MMC5_NametableMapping
+
+	LDA #$00
+	STA MMC5_PRGBankSwitch1
+	STA MMC5_CHRBankSwitchUpper
+
+	; MMC5 Pulse channels
+	LDA #$0F
+	STA MMC5_SND_CHN
+
+	; PRG bank 0
+	LDA #$80 ; ROM bank 0
+	STA MMC5_PRGBankSwitch2 ; $8000-$BFFF
+
+	IFDEF EXPAND_PRG
+		; PRG bank 2
+		LDA #$9E ; ROM bank E
+		STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
+
+		; PRG bank 3
+		LDA #$9F ; ROM bank F
+		STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
+	ELSE
+		; PRG bank 2
+		LDA #$8E ; ROM bank E
+		STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
+
+		; PRG bank 3
+		LDA #$8F ; ROM bank F
+		STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
+	ENDIF
+ENDIF
 ;
 ; Public RESET
 ;
