@@ -711,3 +711,97 @@ UnusedText_Blank214D:
 IFDEF DEBUG
 	.include "src/extras/debug-a.asm"
 ENDIF
+
+PreLevelTitleCard:
+	LDY #$23
+PreLevelTitleCard_TitleCardPaletteLoop:
+	LDA TitleCardPalettes, Y
+	STA PPUBuffer_TitleCardPalette, Y
+	DEY
+	BPL PreLevelTitleCard_TitleCardPaletteLoop
+
+	LDA #ScreenUpdateBuffer_RAM_TitleCardPalette ; Then tell it to dump that into the PPU
+	STA ScreenUpdateIndex
+	JSR WaitForNMI
+
+	LDA #ScreenUpdateBuffer_TitleCardLeftover
+	STA ScreenUpdateIndex
+	JSR WaitForNMI
+
+	JSR DrawTitleCardWorldImage
+
+	JSR WaitForNMI_TurnOnPPU
+
+	JSR RestorePlayerToFullHealth
+
+	; Pause for the title card
+	LDA #$50
+	STA byte_RAM_2
+PreLevelTitleCard_PauseLoop:
+	JSR WaitForNMI
+	DEC byte_RAM_2
+	BPL PreLevelTitleCard_PauseLoop
+
+PreStartLevel:
+	JSR SetStack100Gameplay
+
+	JSR WaitForNMI_TurnOffPPU
+
+	JMP DisableNMI
+
+LoadCHRSelect:
+	JSR EnableNMI_PauseTitleCard
+
+	JSR DisableNMI
+
+	LDA #Music1_CharacterSelect
+	STA MusicQueue1
+	LDA CurrentCharacter
+	STA PreviousCharacter
+	LDA CurrentWorld
+	STA PreviousWorld
+
+	LDY #$3F
+loc_BANKF_E2CA:
+	LDA PlayerSelectMarioSprites1, Y
+	STA SpriteDMAArea + $10, Y
+	DEY
+	BPL loc_BANKF_E2CA
+
+	JSR EnableNMI
+
+	JSR WaitForNMI
+
+	LDX CurrentWorld
+	LDY CurrentLevel
+	JSR DisplayLevelTitleCardText
+
+	JSR WaitForNMI
+
+	JMP loc_BANKF_E311
+
+EndOfLevelSlotMachine_AB:
+	JSR CopyBonusChanceLayoutToRAM
+
+	LDA #ScreenUpdateBuffer_RAM_BonusChanceLayout
+	STA ScreenUpdateIndex
+	LDA #Stack100_Menu
+	STA StackArea
+	JSR EnableNMI
+
+	JSR WaitForNMI
+
+	LDA #Stack100_Gameplay
+	STA StackArea
+	JSR DisableNMI
+
+	JSR sub_BANKF_EA33
+
+	LDA #Music2_SlotWarpFanfare
+	STA MusicQueue2
+	LDA SlotMachineCoins
+	BEQ EndOfLevelSlotMachine_Exit
+	JMP loc_BANKF_E7F2
+
+EndOfLevelSlotMachine_Exit:
+	JMP NoCoinsForSlotMachine

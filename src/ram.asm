@@ -262,9 +262,6 @@ EnemyMovementDirection:
 	.dsb 1 ; 8                ; $0077
 
 ; FOR RENT
-IFDEF PLAYER_HITBOX
-PlayerHitbox:
-ENDIF
 	.dsb 1 ; $0078
 ; This is set on entering subspace, depending
 ; on which particular mushroom is on the screen
@@ -326,9 +323,7 @@ ObjectType:
 ; $00 = on ground or enemy, $01 = in air
 PlayerInAir:
 	.dsb 1 ; $0099
-IFNDEF PLAYER_HITBOX
 PlayerHitbox:
-ENDIF
 PlayerDucking:
 	.dsb 1 ; $009a
 PlayerWalkFrame:

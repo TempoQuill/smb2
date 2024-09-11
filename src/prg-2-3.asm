@@ -3840,11 +3840,16 @@ loc_BANK2_92BE:
 ;   byte_RAM_0 = slot used
 ;
 CreateEnemy_TryAllSlots:
+IFDEF DEBUG
+CreateEnemy:
+ENDIF
 	LDY #$08
+IFNDEF DEBUG
 	BNE CreateEnemy_FindSlot
 
 CreateEnemy:
 	LDY #$05
+ENDIF
 
 CreateEnemy_FindSlot:
 	LDA EnemyState, Y
@@ -11503,19 +11508,11 @@ DetermineCollisionFlags_Y:
 	CPX #$01
 	BCS loc_BANK3_BAD1
 
-IFNDEF PLAYER_HITBOX
 	PHA
 	LDY PlayerDucking
 	PLA
 	SEC
 	SBC byte_BANK3_BB2F, Y
-ELSE
-	LDY PlayerHitbox
-	SEC
-	SBC #$21
-	CLC
-	ADC ObjectCollisionHitboxHeight, Y
-ENDIF
 
 loc_BANK3_BAD1:
 	CMP ObjectYLo - 1, X

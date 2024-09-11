@@ -3,7 +3,6 @@ DebugHook_Exit:
 	JMP NMI_Exit
 
 DoSoundProcessingAndCheckDebug:
-	JSR DoSoundProcessing
 
 	; Are you pressing select?
 	LDA Player1JoypadPress

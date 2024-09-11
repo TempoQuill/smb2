@@ -3161,10 +3161,6 @@ CreateObject_DrawBridgeChain_Loop:
 
 	RTS
 
-
-; Unused space in the original ($9126 - $91FF)
-unusedSpace $9200, $FF
-
 ;
 ; ## Ground setting data
 ;
@@ -5112,3 +5108,31 @@ CreateSubspaceMushroomObject:
 	TAX
 
 	RTS
+
+GetCurrentArea:
+	JSR LoadCurrentArea
+
+	JSR LoadCurrentPalette
+
+IFDEF AREA_HEADER_TILESET
+	JSR LoadWorldCHRBanks
+ENDIF
+
+	JSR HideAllSprites
+
+	JSR WaitForNMI
+
+	JSR SetStack100Gameplay
+
+	LDA #PPUCtrl_Base2000 | PPUCtrl_WriteHorizontal | PPUCtrl_Sprite0000 | PPUCtrl_Background1000 | PPUCtrl_SpriteSize8x16 | PPUCtrl_NMIEnabled
+	STA PPUCtrlMirror
+	RTS
+
+ClearLayoutAndPokeMusic:
+	JSR ClearSubAreaTileLayout
+
+	LDA #Music1_Inside
+	STA MusicQueue1
+	LDA #$01
+	STA CurrentMusicIndex
+	JMP loc_BANKF_E5E1

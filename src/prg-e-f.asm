@@ -573,41 +573,7 @@ DisplayLevelTitleCardAndMore:
 
 	JSR HideAllSprites
 
-	LDY #$23
-DisplayLevelTitleCardAndMore_TitleCardPaletteLoop:
-	LDA TitleCardPalettes, Y
-	STA PPUBuffer_TitleCardPalette, Y
-	DEY
-	BPL DisplayLevelTitleCardAndMore_TitleCardPaletteLoop
-
-	LDA #ScreenUpdateBuffer_RAM_TitleCardPalette ; Then tell it to dump that into the PPU
-	STA ScreenUpdateIndex
-	JSR WaitForNMI
-
-	LDA #ScreenUpdateBuffer_TitleCardLeftover
-	STA ScreenUpdateIndex
-	JSR WaitForNMI
-
-	JSR DrawTitleCardWorldImage
-
-	JSR WaitForNMI_TurnOnPPU
-
-	JSR RestorePlayerToFullHealth
-
-	; Pause for the title card
-	LDA #$50
-	STA byte_RAM_2
-PreLevelTitleCard_PauseLoop:
-	JSR WaitForNMI
-	DEC byte_RAM_2
-	BPL PreLevelTitleCard_PauseLoop
-
-PreStartLevel:
-	JSR SetStack100Gameplay
-
-	JSR WaitForNMI_TurnOffPPU
-
-	JSR DisableNMI
+	JSR PreLevelTitleCard
 
 	JSR LoadWorldCHRBanks
 
@@ -616,9 +582,7 @@ PreStartLevel:
 
 	JSR CopyCharacterStatsAndStuff
 
-	JSR EnableNMI
-
-	RTS
+	JMP EnableNMI
 
 
 ;
@@ -651,35 +615,7 @@ DoCharacterSelectMenu:
 	STA CharacterSelectBankSwitch
 
 loc_BANKF_E2B2:
-	JSR EnableNMI_PauseTitleCard
-
-	JSR DisableNMI
-
-	LDA #Music1_CharacterSelect
-	STA MusicQueue1
-	LDA CurrentCharacter
-	STA PreviousCharacter
-	LDA CurrentWorld
-	STA PreviousWorld
-
-	LDY #$3F
-loc_BANKF_E2CA:
-	LDA PlayerSelectMarioSprites1, Y
-	STA SpriteDMAArea + $10, Y
-	DEY
-	BPL loc_BANKF_E2CA
-
-	JSR EnableNMI
-
-	JSR WaitForNMI
-
-	LDX CurrentWorld
-	LDY CurrentLevel
-	JSR DisplayLevelTitleCardText
-
-	JSR WaitForNMI
-
-	JMP loc_BANKF_E311
+	JMP LoadCHRSelect
 
 ; ---------------------------------------------------------------------------
 
@@ -863,7 +799,6 @@ StartGame:
 
 	JSR TitleScreen ; The whole title screen is a subroutine, lol
 
-	INC GameMilestoneCounter
 SetNumContinues:
 	LDA #$02 ; Number of continues on start
 	STA Continues
@@ -920,22 +855,7 @@ StartLevel_SetPPUCtrlMirror:
 	LDA #PRGBank_6_7
 	JSR ChangeMappedPRGBank
 
-	JSR LoadCurrentArea
-
-	JSR LoadCurrentPalette
-
-IFDEF AREA_HEADER_TILESET
-	JSR LoadWorldCHRBanks
-ENDIF
-
-	JSR HideAllSprites
-
-	JSR WaitForNMI
-
-	JSR SetStack100Gameplay
-
-	LDA #PPUCtrl_Base2000 | PPUCtrl_WriteHorizontal | PPUCtrl_Sprite0000 | PPUCtrl_Background1000 | PPUCtrl_SpriteSize8x16 | PPUCtrl_NMIEnabled
-	STA PPUCtrlMirror
+	JSR GetCurrentArea
 
 	LDA IsHorizontalLevel
 	BEQ VerticalLevel_Loop
@@ -947,8 +867,6 @@ HorizontalLevel_Loop:
 	JSR ChangeMappedPRGBank
 
 	JSR InitializeAreaHorizontal
-
-	JSR EnsureCorrectMusic
 
 	LDA BreakStartLevelLoop
 	BEQ HorizontalLevel_Loop
@@ -1007,8 +925,6 @@ VerticalLevel_Loop:
 	JSR ChangeMappedPRGBank
 
 	JSR InitializeAreaVertical
-
-	JSR EnsureCorrectMusic
 
 	LDA BreakStartLevelLoop
 	BEQ VerticalLevel_Loop
@@ -1130,46 +1046,7 @@ ENDIF
 	LDA #PRGBank_0_1
 	JSR ChangeMappedPRGBank
 
-	JSR RestoreScreenScrollPosition
-
-	LDA IsHorizontalLevel
-	BNE HidePauseScreen_Horizontal
-
-HidePauseScreen_Vertical:
-	LDA #HMirror
-	JSR ChangeNametableMirroring
-
-	JSR sub_BANK0_81FE
-
-HidePauseScreen_Vertical_Loop:
-	JSR WaitForNMI
-
-	JSR sub_BANK0_823D
-
-	LDA byte_RAM_537
-	BEQ HidePauseScreen_Vertical_Loop
-
-	JSR WaitForNMI_TurnOnPPU
-
-	JMP VerticalLevel_CheckScroll
-
-HidePauseScreen_Horizontal:
-	LDA #VMirror
-	JSR ChangeNametableMirroring
-
-	JSR sub_BANK0_8785
-
-HidePauseScreen_Horizontal_Loop:
-	JSR WaitForNMI
-
-	JSR sub_BANK0_87AA
-
-	LDA byte_RAM_537
-	BEQ HidePauseScreen_Horizontal_Loop
-
-	JSR WaitForNMI_TurnOnPPU
-
-	JMP HorizontalLevel_CheckScroll
+	JMP HidePauseScreen_01
 
 
 InitializeSubArea:
@@ -1195,14 +1072,7 @@ InitializeJar:
 	LDA #PRGBank_6_7
 	JSR ChangeMappedPRGBank
 
-	JSR ClearSubAreaTileLayout
-
-	LDA #Music1_Inside
-	STA MusicQueue1
-	LDA #$01
-	STA CurrentMusicIndex
-	JMP loc_BANKF_E5E1
-
+	JMP ClearLayoutAndPokeMusic
 
 InitializeSubspace:
 	JSR GenerateSubspaceArea
@@ -1288,19 +1158,7 @@ loc_BANKF_E64C:
 	LDA #PRGBank_0_1
 	JSR ChangeMappedPRGBank
 
-	JSR UseMainAreaScreenBoundaries
-
-ExitSubArea_Loop:
-	JSR WaitForNMI
-
-	JSR sub_BANK0_87AA
-
-	LDA byte_RAM_537
-	BEQ ExitSubArea_Loop
-
-	JSR WaitForNMI_TurnOnPPU
-
-	JMP HorizontalLevel_CheckScroll
+	JMP ExitSubArea
 
 
 ;
@@ -1556,29 +1414,7 @@ ENDIF
 
 	LDA #PRGBank_A_B
 	JSR ChangeMappedPRGBank
-
-	JSR CopyBonusChanceLayoutToRAM
-
-	LDA #ScreenUpdateBuffer_RAM_BonusChanceLayout
-	STA ScreenUpdateIndex
-	LDA #Stack100_Menu
-	STA StackArea
-	JSR EnableNMI
-
-	JSR WaitForNMI
-
-	LDA #Stack100_Gameplay
-	STA StackArea
-	JSR DisableNMI
-
-	JSR sub_BANKF_EA33
-
-	LDA #Music2_SlotWarpFanfare
-	STA MusicQueue2
-	LDA SlotMachineCoins
-	BNE loc_BANKF_E7F2
-
-	JMP NoCoinsForSlotMachine
+	JMP EndOfLevelSlotMachine_AB
 
 ; ---------------------------------------------------------------------------
 
@@ -1866,8 +1702,6 @@ EndingSceneRoutine:
 
 	LDA #PRGBank_0_1
 	JSR ChangeMappedPRGBank
-
-	INC GameMilestoneCounter
 
 	JSR ContributorScene
 
@@ -2278,7 +2112,7 @@ NMI_PauseOrMenu:
 NMI_Waiting:
 	LDA PPUMaskMirror
 	STA PPUMASK
-	JMP NMI_DoSoundProcessing
+	JMP NMI_Lag
 
 
 ;
@@ -2462,9 +2296,9 @@ NMI_ResetScreenUpdateIndex:
 	DEC NMIWaitFlag
 
 NMI_DoSoundProcessing:
-IFNDEF DEBUG
+NMI_Lag:
 	JSR DoSoundProcessing
-ELSE
+IFDEF DEBUG
 	JMP DoSoundProcessingAndCheckDebug
 ENDIF
 
@@ -2499,6 +2333,7 @@ ResetPPUAddress:
 
 
 DoSoundProcessing:
+IFNDEF GS_SWAP
 	LDA #PRGBank_4_5
 	JSR ChangeMappedPRGBankWithoutSaving
 
@@ -2506,6 +2341,9 @@ DoSoundProcessing:
 
 	LDA MMC3PRGBankTemp
 	JMP ChangeMappedPRGBank
+ELSE
+	RTS
+ENDIF
 
 
 ClearNametablesAndSprites:
@@ -5717,6 +5555,7 @@ RESET_MMC5:
 	LDA #$02
 	STA MMC5_PRGMode
 	STA MMC5_PRGRAMProtect1
+	STA MMC5_ExtendedRAMMode
 	LDA #$01
 	STA MMC5_PRGRAMProtect2
 
@@ -5734,7 +5573,7 @@ RESET_MMC5:
 
 	; PRG bank 0
 	LDA #$80 ; ROM bank 0
-	STA MMC5_PRGBankSwitch2 ; $8000-$BFFF
+	STA MMC5_PRGBankSwitch3 ; $8000-$BFFF
 
 	IFDEF EXPAND_PRG
 		; PRG bank 2
@@ -5812,16 +5651,22 @@ ChangeCHRBanks:
 
 	LDA BackgroundCHR1
 	STA MMC5_CHRBankSwitch5
-	STA MMC5_CHRBankSwitch9
 	ADC #$01
 	STA MMC5_CHRBankSwitch6
-	STA MMC5_CHRBankSwitch10
 
 	LDA BackgroundCHR2
 	STA MMC5_CHRBankSwitch7
-	STA MMC5_CHRBankSwitch11
 	ADC #$01
 	STA MMC5_CHRBankSwitch8
+
+	LDA BackgroundCHR1
+	STA MMC5_CHRBankSwitch9
+	ADC #$01
+	STA MMC5_CHRBankSwitch10
+
+	LDA BackgroundCHR2
+	STA MMC5_CHRBankSwitch11
+	ADC #$01
 	STA MMC5_CHRBankSwitch12
 	RTS
 
@@ -5846,6 +5691,7 @@ ENDIF
 ; to RAM, so if something uses the below version
 ; the original bank set with this can be restored.
 ;
+PushLower16K:
 ChangeMappedPRGBank:
 	STA MMC3PRGBankTemp ; See below comment.
 
@@ -5873,12 +5719,13 @@ ChangeMappedPRGBank:
 ; can be recalled later (mostly for temporary switches,
 ; like music handling and such)
 ;
+SwitchLower16K:
 ChangeMappedPRGBankWithoutSaving:
 	ASL A
 
 IF INES_MAPPER == MAPPER_MMC5
 	ORA #$80
-	STA MMC5_PRGBankSwitch2
+	STA MMC5_PRGBankSwitch3
 	RTS
 
 ELSE ; INES_MAPPER == MAPPER_MMC3

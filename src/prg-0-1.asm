@@ -105,7 +105,7 @@ loc_BANK0_805D:
 	STA byte_RAM_502
 
 InitializeAreaVertical_Exit:
-	RTS
+	JMP EnsureCorrectMusic
 
 
 ;
@@ -1007,10 +1007,6 @@ sub_BANK0_84AC:
 	JMP SetTilePaletteInPPUAttribute
 
 
-; Unused space in the original ($84B8 - $84FF)
-unusedSpace $8500, $FF
-
-
 ;
 ; Initializes a horizontal area
 ;
@@ -1086,7 +1082,7 @@ loc_BANK0_855C:
 	INC BreakStartLevelLoop
 
 InitializeAreaHorizontal_Exit:
-	RTS
+	JMP EnsureCorrectMusic
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -1904,10 +1900,6 @@ SetObjectLocks_Loop:
 
 
 
-; Unused space in the original ($8966 - $89FF)
-unusedSpace $8A00, $FF
-
-
 GrowShrinkSFXIndexes:
 	.db SoundEffect2_Shrinking
 	.db SoundEffect2_Growing
@@ -2075,10 +2067,6 @@ loc_BANK0_8ABB:
 
 loc_BANK0_8ABF:
 	INC PlayerDucking
-IFDEF PLAYER_HITBOX
-	LDA PlayerDucking
-	STA PlayerHitbox
-ENDIF
 
 locret_BANK0_8AC1:
 	RTS
@@ -2437,10 +2425,6 @@ sub_BANK0_8C1A:
 	BNE loc_BANK0_8C92
 
 	DEC PlayerDucking
-IFDEF PLAYER_HITBOX
-	LDA PlayerDucking
-	STA PlayerHitbox
-ENDIF
 
 loc_BANK0_8C2B:
 	LDA Player1JoypadPress
@@ -2466,10 +2450,6 @@ loc_BANK0_8C3D:
 	BEQ ResetPartialCrouchJumpTimer
 
 	INC PlayerDucking ; set ducking state?
-IFDEF PLAYER_HITBOX
-	LDA PlayerDucking
-	STA PlayerHitbox
-ENDIF
 	LDA #SpriteAnimation_Ducking ; set ducking animation
 	STA PlayerAnimationFrame
 	LDA PlayerInAir ; skip ahead if player is in air
@@ -4903,15 +4883,6 @@ PageHeightCompensation_Exit:
 	RTS
 
 
-IFNDEF ENABLE_TILE_ATTRIBUTES_TABLE
-IFNDEF ROBUST_TRANSITION_SEARCH
-
-; Unused space in the original ($95C3 - $95FF)
-unusedSpace $9600, $FF
-ENDIF
-ENDIF
-
-
 TitleScreenPPUDataPointers:
 	.dw PPUBuffer_301
 	.dw TitleLayout
@@ -5620,7 +5591,9 @@ loc_BANK0_9C2A:
 	CPY #$F0
 	BCC loc_BANK0_9C2A
 
-	JMP HideAllSprites
+	JSR HideAllSprites
+	INC GameMilestoneCounter
+	RTS
 
 ; ---------------------------------------------------------------------------
 
@@ -5761,10 +5734,6 @@ HandlePlayerState_Respawning_AreaReset:
 	; Kick off the level again
 	JMP StartLevel
 ENDIF
-
-; Unused space in the original ($9C58 - $A1FF)
-unusedSpace $A200, $FF
-
 
 EndingPPUDataPointers:
 	.dw PPUBuffer_301
@@ -6545,6 +6514,7 @@ ContributorCharacterOAMData:
 ; fate while the characters stand and wave
 ;
 ContributorScene:
+	INC GameMilestoneCounter
 	JSR WaitForNMI_Ending_TurnOffPPU
 
 	LDA #VMirror
@@ -7881,3 +7851,60 @@ CreateEnemy_Bank1_FoundSlot:
 
 	LDX byte_RAM_12
 	RTS
+
+HidePauseScreen_01:
+	JSR RestoreScreenScrollPosition
+
+	LDA IsHorizontalLevel
+	BNE HidePauseScreen_Horizontal
+
+HidePauseScreen_Vertical:
+	LDA #HMirror
+	JSR ChangeNametableMirroring
+
+	JSR sub_BANK0_81FE
+
+HidePauseScreen_Vertical_Loop:
+	JSR WaitForNMI
+
+	JSR sub_BANK0_823D
+
+	LDA byte_RAM_537
+	BEQ HidePauseScreen_Vertical_Loop
+
+	JSR WaitForNMI_TurnOnPPU
+
+	JMP VerticalLevel_CheckScroll
+
+HidePauseScreen_Horizontal:
+	LDA #VMirror
+	JSR ChangeNametableMirroring
+
+	JSR sub_BANK0_8785
+
+HidePauseScreen_Horizontal_Loop:
+	JSR WaitForNMI
+
+	JSR sub_BANK0_87AA
+
+	LDA byte_RAM_537
+	BEQ HidePauseScreen_Horizontal_Loop
+
+	JSR WaitForNMI_TurnOnPPU
+
+	JMP HorizontalLevel_CheckScroll
+
+ExitSubArea:
+	JSR UseMainAreaScreenBoundaries
+
+ExitSubArea_Loop:
+	JSR WaitForNMI
+
+	JSR sub_BANK0_87AA
+
+	LDA byte_RAM_537
+	BEQ ExitSubArea_Loop
+
+	JSR WaitForNMI_TurnOnPPU
+
+	JMP HorizontalLevel_CheckScroll
