@@ -112,9 +112,6 @@ ENDIF
 ; Skips Bonus Chance after the end of a level
 ; DISABLE_BONUS_CHANCE = 1
 
-; Swaps sound engine with an NES port of Pokemon Gold/Silver's
-GS_SWAP = 1
-
 ; Go to the Charater Select screen after death
 ; CHARACTER_SELECT_AFTER_DEATH = 1
 

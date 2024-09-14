@@ -29,11 +29,7 @@ ENDIF
 ; Add NES header
 	.db "NES", $1a ; identification of the iNES header
 
-IFDEF EXPAND_PRG
 	.db 16 ; this can go up to 32
-ELSE
-	.db 8 ; number of 16KB PRG-ROM pages
-ENDIF
 
 IFDEF EXPAND_CHR
 	.db 32
@@ -55,16 +51,23 @@ ENDIF
 ; Add macros
 .include "src/macros.asm"
 
+.include "gs-src/macros/audio.asm"
+.include "gs-src/macros/code.asm"
+.include "gs-src/macros/data.asm"
+
 ; -----------------------------------------
 ; Add definitions
 .enum $0000
 .include "src/defs.asm"
 .ende
 
+.include "gs-src/def/audio-constants.asm"
+.include "gs-src/def/music-constants.asm"
+.include "gs-src/def/cry-constants.asm"
+.include "gs-src/def/sfx-constants.asm"
+
 ; Add RAM definitions
-.enum $0000
 .include "src/ram.asm"
-.ende
 
 ; -----------------------------------------
 ; Add each of the 16 banks.
@@ -132,9 +135,8 @@ ENDIF
 
 ; ----------------------------------------
 ; extra PRG-ROM pages (8 bank pairs)
-IFDEF EXPAND_PRG
-.dsb (8 * $4000), $ff
-ENDIF
+	.include "gs-src/audio.asm"
+	.dsb $4000, $ff
 
 ; ----------------------------------------
 ; Banks E and F. Fixed at $C000-FFFF.

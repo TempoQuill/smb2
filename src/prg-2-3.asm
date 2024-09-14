@@ -102,8 +102,8 @@ AreaInitialization_CarryYOffsetLoop:
 	ORA CurrentLevel
 	BNE AreaInitialization_CheckObjectCarriedOver
 
-	LDA #SoundEffect2_IntroFallSlide
-	STA SoundEffectQueue2
+	LDY #SFX_MASTER_BALL
+	JSR PlaySFX
 
 AreaInitialization_CheckObjectCarriedOver:
 	LDA ObjectCarriedOver
@@ -288,8 +288,8 @@ ENDIF
 	AND #%00011111
 	BNE AreaMainRoutine_DecrementStopwatch
 
-	LDY #SoundEffect1_StopwatchTick
-	STY SoundEffectQueue1
+	LDY #SFX_TALLY
+	JSR PlaySFX
 
 AreaMainRoutine_DecrementStopwatch:
 	LSR A
@@ -1028,8 +1028,12 @@ HandleEnemyState_Dead_BossBeaten:
 
 	JSR Swarm_Stop
 
-	LDA #Music2_BossClearFanfare
-	STA MusicQueue2
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	JSR ClearSFX
+	LDY #SFX_DEX_FANFARE_230_PLUS
+	STY MusicPlaying2
+	JSR PlaySFX
 	LDA EndOfLevelDoorPage, X
 	STA ObjectXHi, X
 	LDA #$80
@@ -2739,8 +2743,8 @@ loc_BANK2_8D7B:
 	DEC HawkmouthOpenTimer
 	BNE loc_BANK2_8D78
 
-	LDA #SoundEffect1_HawkOpen_WartBarf
-	STA SoundEffectQueue1
+	LDY #SFX_BIND
+	JSR PlaySFX
 
 loc_BANK2_8D8A:
 	LDA HawkmouthClosing
@@ -2824,8 +2828,8 @@ loc_BANK2_8DDB:
 	STA PlayerStateTimer
 	LDA #$FC
 	STA PlayerYVelocity
-	LDA #SoundEffect1_HawkOpen_WartBarf
-	STA SoundEffectQueue1
+	LDY #SFX_BIND
+	JSR PlaySFX
 	INC HawkmouthClosing
 
 RenderSprite_HawkmouthLeft:
@@ -3229,8 +3233,8 @@ BirdoBehavior_SpitProjectile:
 	CPY #$08
 	BNE loc_BANK2_901B
 
-	LDA #SoundEffect1_BirdoShot
-	STA SoundEffectQueue1
+	LDY #SFX_SECOND_PART_OF_ITEMFINDER
+	JSR PlaySFX
 	JSR sub_BANK2_95E5
 
 	BMI loc_BANK2_901B
@@ -3302,8 +3306,9 @@ EnemyBehavior_Coin:
 	CMP #$EA
 	BNE EnemyBehavior_Mushroom1up
 
-	LDA #SoundEffect2_CoinGet
-	STA SoundEffectQueue2
+	JSR ClearSFX
+	LDY #SFX_GET_COIN_FROM_SLOTS
+	JSR PlaySFX
 
 EnemyBehavior_Mushroom1up:
 	LDA ObjectYVelocity, X
@@ -3329,9 +3334,8 @@ Award1upMushroom:
 	DEC ExtraLives
 
 loc_BANK2_9050:
-	LDA #SoundEffect1_1UP
-	STA SoundEffectQueue1
-	RTS
+	LDY #SFX_ITEM
+	JMP PlaySFX
 
 ; ---------------------------------------------------------------------------
 
@@ -3369,8 +3373,8 @@ EnemyBehavior_Mushroom_PickUp:
 	LDA CrystalAndHawkmouthOpenSize
 	BNE EnemyBehavior_CrystalBall_Exit
 
-	LDA #Music2_CrystalGetFanfare
-	STA MusicQueue2
+	LDY #SFX_DEX_FANFARE_80_109
+	JSR PlaySFX
 	LDA #$60
 	STA HawkmouthOpenTimer
 	INC CrystalAndHawkmouthOpenSize
@@ -3395,9 +3399,9 @@ EnemyBehavior_PickUpMushroom:
 	INC PlayerMaxHealth
 	JSR RestorePlayerToFullHealth
 
-	LDA #Music2_MushroomGetJingle
-	STA MusicQueue2
-	RTS
+	LDY #SFX_KEY_ITEM
+	JSR ClearSFX
+	JMP PlaySFX
 
 EnemyBehavior_PickUpMushroom1up:
 	LDA #$09
@@ -3485,9 +3489,9 @@ EnemyBehavior_Bomb_Explode:
 	LDA #$20
 	STA ObjectTimer1, X
 	STA SkyFlashTimer
-	LDA #DPCM_DoorOpenBombBom
-	STA DPCMQueue
-	LSR A
+	LDY #SFX_EGG_BOMB
+	JSR PlaySFX
+	LDA #0
 	; A = $00
 	STA ObjectProjectileTimer, X
 	RTS
@@ -3559,8 +3563,8 @@ EnemyBehavior_SubspacePotion_CheckGroundCollision:
 	STA ObjectXHi, X
 	LDA #$10
 	STA ObjectTimer2, X
-	LDA #SoundEffect1_PotionDoorBong
-	STA SoundEffectQueue1
+	LDY #SFX_BALL_POOF
+	JSR PlaySFX
 	INC EnemyArray_B1, X
 	LDA #Enemy_SubspaceDoor
 	STA ObjectType, X
@@ -3573,8 +3577,8 @@ EnemyBehavior_SubspacePotion_CheckGroundCollision:
 	LDA IsHorizontalLevel
 	BNE EnemyBehavior_SubspacePotion_CreateDoor
 
-	LDA #DPCM_BossHurt
-	STA DPCMQueue
+	LDY #SFX_POISON_STING
+	JSR PlaySFX
 	JSR EnemyDestroy
 
 EnemyBehavior_SubspacePotion_CreateDoor:
@@ -4019,8 +4023,8 @@ Phanto_AfterFlashing:
 	STA ObjectShakeTimer, X
 
 	; Play Phanto activation sound effect
-	LDA #SoundEffect3_POWRumble
-	STA SoundEffectQueue3
+	LDY #SFX_GS_INTRO_CHARIZARD_FIREBALL
+	JSR PlaySFX
 
 Phanto_AfterSound:
 	DEC PhantoActivateTimer
@@ -4782,8 +4786,8 @@ loc_BANK2_96EC:
 
 	LDA #$20
 	STA POWQuakeTimer
-	LDA #SoundEffect3_POWRumble
-	STA SoundEffectQueue3
+	LDY #SFX_EMBER
+	JSR PlaySFX
 	JMP SetBlockFizzle
 
 ; ---------------------------------------------------------------------------
@@ -5131,8 +5135,8 @@ EnemyBehavior_Shell:
 	BEQ EnemyBehavior_Shell_Slide
 
 EnemyBehavior_Shell_Destroy:
-	LDA #SoundEffect1_EnemyHit
-	STA SoundEffectQueue1
+	LDY #SFX_RAZOR_WIND
+	JSR PlaySFX
 	JMP TurnIntoPuffOfSmoke
 
 
@@ -5369,19 +5373,22 @@ EnemyBehavior_CheckDamagedInterrupt_SoundEffect:
 	; is this enemy a squawker?
 	LDA EnemyArray_46E_Data, Y
 	AND #SpriteFlags46E_DeathSquawk
-	ASL A ; then A = DPCM_BossDeath
 	BNE EnemyBehavior_CheckDamagedInterrupt_BossDeathSound
 
 	; normal enemy hit sound
-	LDA DPCMQueue
-	BNE EnemyBehavior_CheckDamagedInterrupt_CheckPidgit
-
-	LDA #SoundEffect1_EnemyHit
-	STA SoundEffectQueue1
+	JSR CheckSFX
+	BCS EnemyBehavior_CheckDamagedInterrupt_CheckPidgit
+	TYA
+	LDY #SFX_TACKLE
+	JSR PlaySFX
+	TAY
 	BNE EnemyBehavior_CheckDamagedInterrupt_CheckPidgit
 
 EnemyBehavior_CheckDamagedInterrupt_BossDeathSound:
-	STA DPCMQueue
+	TYA
+	LDY #SFX_FAINT
+	JSR PlaySFX
+	TAY
 
 EnemyBehavior_CheckDamagedInterrupt_CheckPidgit:
 	; killing pidgit leaves a flying carpet behind
@@ -8151,8 +8158,8 @@ EnemyBehavior_Tryclyde_SpitFireball:
 
 	BMI RenderSprite_Tryclyde_Exit
 
-	LDA #SoundEffect1_BirdoShot
-	STA SoundEffectQueue1
+	LDY #SFX_CUT
+	JSR PlaySFX
 	LDY byte_RAM_0
 	LDA #Enemy_Fireball
 	STA ObjectType, Y
@@ -8411,8 +8418,8 @@ EnemyBehavior_CobratJar_Blocked:
 	STA EnemyState, X
 	LDA #$E0
 	STA ObjectYVelocity, X
-	LDA #DPCM_BossHurt
-	STA DPCMQueue
+	LDY #SFX_POISON_STING
+	JSR PlaySFX
 
 EnemyBehavior_CobratJar_CheckReset:
 	LDA EnemyVariable, X
@@ -8754,8 +8761,9 @@ EnemyBehavior_Rocket_Launching:
 	; Setting EnemyArray_B1 puts the rocket in the area
 	STA EnemyArray_B1, X
 	STA PlayerInRocket
-	LDA #SoundEffect3_Rocket
-	STA SoundEffectQueue3
+	JSR ClearSFX
+	LDY #SFX_EMBER
+	JSR PlaySFX
 	LDA #$FE
 	STA ObjectYVelocity, X
 
@@ -9061,7 +9069,7 @@ EnemyBehavior_FryguySplit:
 	AND #$10
 	BEQ loc_BANK3_AD59
 
-	JSR PlayBossHurtSound
+	JSR PlayDamageSound
 
 	LDA #SpriteFlags46E_00
 	STA EnemyArray_46E, X
@@ -9344,9 +9352,11 @@ loc_BANK3_AEC3:
 	STA ObjectYLo, X
 
 loc_BANK3_AECD:
-	LDA #SoundEffect3_WhaleSpout
-	STA SoundEffectQueue3
-	LDA EnemyVariable, X
+	JSR CheckSFX
+	BCS +
+	LDY #SFX_RAIN_DANCE
+	JSR PlaySFX
++	LDA EnemyVariable, X
 	CMP #$80
 	BCC loc_BANK3_AEE6
 
@@ -9658,8 +9668,8 @@ HawkmouthEat:
 ; =============== S U B R O U T I N E =======================================
 
 sub_BANK3_B095:
-	LDA #SoundEffect1_HawkOpen_WartBarf
-	STA SoundEffectQueue1
+	LDY #SFX_BIND
+	JMP PlaySFX
 
 locret_BANK3_B09A:
 	RTS
@@ -9973,8 +9983,8 @@ EnemyBehavior_Wart_PhysicsX:
 
 	BMI EnemyBehavior_Wart_Exit
 
-	LDA #SoundEffect1_HawkOpen_WartBarf
-	STA SoundEffectQueue1
+	LDY #SFX_SLUDGE_BOMB
+	JSR PlaySFX
 	; determines how high to spit the bubble
 	LDA EnemyArray_480, X
 	AND #$03
@@ -10033,8 +10043,8 @@ EnemyBehavior_Wart_DeathFall:
 	AND #$1F
 	BNE EnemyBehavior_Wart_CheckDeathComplete
 
-	LDA #DPCM_BossDeath
-	STA DPCMQueue
+	LDY #SFX_POWDER
+	JSR PlaySFX
 	JSR CreateEnemy
 
 	LDX byte_RAM_0
@@ -10863,7 +10873,7 @@ loc_BANK3_B792:
 	AND #SpriteFlags46E_DeathSquawk
 	BEQ loc_BANK3_B7A4
 
-	JSR PlayBossHurtSound
+	JSR PlayDamageSound
 
 loc_BANK3_B7A4:
 	LDA EnemyHP, Y
@@ -10872,7 +10882,7 @@ loc_BANK3_B7A4:
 	STA EnemyHP, Y
 	BMI loc_BANK3_B7BD
 
-	JSR PlayBossHurtSound
+	JSR PlayDamageSound
 
 	LDA #$21
 	STA ObjectFlashTimer, Y
@@ -10921,8 +10931,8 @@ CheckCollisionWithPlayer:
 
 	; accept the heart into your life
 	STA EnemyState, Y
-	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
+	LDY #SFX_FULL_HEAL
+	JSR PlaySFX
 	LDY PlayerMaxHealth
 	LDA PlayerHealth
 	CLC
@@ -10948,8 +10958,12 @@ CheckCollisionWithPlayer_NotPhanto:
 
 	LDA #$3F
 	STA StarInvincibilityTimer
-	LDA #Music1_Invincible
-	STA MusicQueue1
+	TYA
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #MUSIC_HALL_OF_FAME
+	JSR PlayMusic
+	TAY
 	LDA #EnemyState_Inactive
 	STA EnemyState, Y
 
@@ -11369,8 +11383,8 @@ loc_BANK3_BA2A:
 	STA PlayerYVelocity
 
 loc_BANK3_BA2C:
-	LDA #DPCM_PlayerHurt
-	STA DPCMQueue
+	LDY #SFX_BUMP
+	JMP PlaySFX
 
 locret_BANK3_BA31:
 	RTS
@@ -11426,7 +11440,7 @@ sub_BANK3_BA5D:
 	AND #Enemy_Ostro
 	BEQ EnemyTakeDamage
 
-	JSR PlayBossHurtSound
+	JSR PlayDamageSound
 
 EnemyTakeDamage:
 	DEC EnemyHP - 1, X ; Subtract hit point
@@ -11441,9 +11455,11 @@ loc_BANK3_BA7A:
 
 ; End of function sub_BANK3_BA5D
 
-PlayBossHurtSound:
-	LDA #DPCM_BossHurt
-	STA DPCMQueue
+PlayDamageSound:
+	TYA
+	LDY #SFX_DAMAGE
+	JSR PlaySFX
+	TAY
 	RTS
 
 ; ---------------------------------------------------------------------------
@@ -11809,9 +11825,8 @@ DoorHandling_GoThroughDoor_Bank3:
 	INC PlayerLock
 	JSR SnapPlayerToTile_Bank3
 
-	LDA #DPCM_DoorOpenBombBom
-	STA DPCMQueue
-	RTS
+	LDY #SFX_ENTER_DOOR
+	JMP PlaySFX
 
 
 ;

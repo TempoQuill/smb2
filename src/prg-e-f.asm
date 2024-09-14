@@ -23,6 +23,7 @@
 
 ; Include DPCM samples
 .incbin "src/music/dpcm-samples.bin"
+.align $2000, $55
 
 ; PPU update buffers used to update the screen
 ScreenUpdateBufferPointers:
@@ -634,8 +635,8 @@ CharacterSelect_ChangeCharacter:
 	BEQ loc_BANKF_E2FE
 
 	DEC CurrentCharacter
-	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
+	LDY #SFX_READ_TEXT
+	JSR PlaySFX
 
 loc_BANKF_E2FE:
 	LDA Player1JoypadPress
@@ -643,8 +644,8 @@ loc_BANKF_E2FE:
 	BEQ loc_BANKF_E30B
 
 	INC CurrentCharacter
-	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
+	LDY #SFX_READ_TEXT
+	JSR PlaySFX
 
 loc_BANKF_E30B:
 	LDA CurrentCharacter
@@ -733,8 +734,8 @@ CharacterSelectMenuLoop:
 ; ---------------------------------------------------------------------------
 
 loc_BANKF_E3AE:
-	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
+	LDY #SFX_HIT_END_OF_EXP_BAR
+	JSR PlaySFX
 	LDX CurrentWorld
 	LDY CurrentLevel
 	JSR DisplayLevelTitleCardText
@@ -779,9 +780,8 @@ loc_BANKF_E3EC:
 	DEC byte_RAM_10
 	BPL loc_BANKF_E3EC
 
-	LDA #Music2_StopMusic
-	STA MusicQueue2
-	RTS
+	LDY #MUSIC_NONE
+	JMP PlayMusic
 
 
 ;
@@ -975,11 +975,7 @@ VerticalLevel_CheckTransition:
 ; Pauses the game
 ;
 ShowPauseScreen:
-IFNDEF RESPAWN_INSTEAD_OF_DEATH
 	JSR PauseScreen_ExtraLife
-ELSE
-	JMP PauseRespawn
-ENDIF
 
 SetStack100Pause:
 	; used when running sound queues
@@ -1077,8 +1073,12 @@ InitializeJar:
 InitializeSubspace:
 	JSR GenerateSubspaceArea
 
-	LDA #Music1_Subspace
-	STA MusicQueue1
+	TYA
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #MUSIC_MT_MOON_SQUARE
+	JSR PlayMusic
+	TAY
 	LDA #$04
 	STA CurrentMusicIndex
 
@@ -1146,13 +1146,14 @@ loc_BANKF_E627:
 
 	JSR HideAllSprites
 
-	LDY CompareMusicIndex
-	STY CurrentMusicIndex
+	LDA CompareMusicIndex
+	STA CurrentMusicIndex
+	ASL A
+	TAY
 	LDA StarInvincibilityTimer
 	BNE loc_BANKF_E64C
 
-	LDA LevelMusicIndexes, Y
-	STA MusicQueue1
+	JSR GetDesignatedMusic
 
 loc_BANKF_E64C:
 	LDA #PRGBank_0_1
@@ -1222,8 +1223,10 @@ ResetAreaAndProcessGameMode_NotTitleCard:
 
 DoGameOverStuff:
 	STY PlayerCurrentSize
-	LDA #Music2_GameOver
-	STA MusicQueue2
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #SFX_MOVE_DELETED
+	JSR PlaySFX
 	JSR WaitForNMI_TurnOffPPU
 
 	JSR ChangeTitleCardCHR
@@ -1357,8 +1360,10 @@ DoWorldWarp:
 
 	LDA #ScreenUpdateBuffer_WarpToWorld
 	STA ScreenUpdateIndex
-	LDA #Music2_SlotWarpFanfare
-	STA MusicQueue2
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #SFX_GET_EGG
+	JSR PlaySFX
 	JSR Delay160Frames
 
 	JSR InitializeSomeLevelStuff
@@ -1369,8 +1374,10 @@ DoWorldWarp:
 
 EndOfLevel:
 	; Stop the music
-	LDA #Music2_StopMusic ; Stop music
-	STA MusicQueue2
+	TYA
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	TAY
 
 	; Increase current characters "contribution" counter
 	LDX CurrentCharacter
@@ -1504,8 +1511,6 @@ DoSlotMachineSpinnyShit:
 	JSR WaitForNMI ; $2C-$2E: Reel change timer
 	; $2F-$31: Current reel icon
 
-	LDA #SoundEffect2_Climbing ; Play "reel sound" sound effect
-	STA SoundEffectQueue2
 	JSR sub_BANKF_EAC2
 
 	JSR sub_BANKF_EADC
@@ -1571,8 +1576,10 @@ loc_BANKF_E8D3:
 
 	ORA #$D0
 	STA PPUBuffer_Player1UpText + 11 ; Update number of lives won
-	LDA #Music2_CrystalGetFanfare ; Play winner jingle
-	STA MusicQueue2
+	JSR ClearSFX
+	LDA SlotWinSoundEffects, Y ; Play winner jingle
+	TAY
+	JSR PlaySFX
 	LDA #$A0
 	STA byte_RAM_6
 	JSR WaitForNMI
@@ -1587,13 +1594,12 @@ loc_BANKF_E8ED:
 	LDA BonusChanceUpdateBuffer_PLAYER_1UP, Y
 	STA ScreenUpdateIndex
 	DEC byte_RAM_6
-	BNE loc_BANKF_E8ED
+	JSR CheckSFX
+	BCS loc_BANKF_E8ED
 
-	BEQ loc_BANKF_E90C
+	BCC loc_BANKF_E90C
 
 SlotMachineLoseFanfare:
-	LDA #Music2_DeathJingle
-	STA MusicQueue2
 	JSR WaitForNMI
 
 	JSR sub_BANKF_EA68
@@ -1607,6 +1613,13 @@ loc_BANKF_E90C:
 
 	JMP loc_BANKF_E7FD
 
+SlotWinSoundEffects:
+	.db SFX_WRONG
+	.db SFX_3RD_PLACE
+	.db SFX_2ND_PLACE
+	.db SFX_1ST_PLACE
+	.db SFX_1ST_PLACE
+	.db SFX_1ST_PLACE
 
 ;
 ; Used for flashing text in Bonus Chance
@@ -1629,11 +1642,7 @@ SlotMachineTextFlashIndex:
 
 
 NoCoinsForSlotMachine:
-	JSR Delay80Frames
-
-	LDA #Music2_DeathJingle
-	STA MusicQueue2
-
+	LDA #$7F
 	STA byte_RAM_6
 loc_BANKF_E92A:
 	LDA byte_RAM_6
@@ -1646,12 +1655,14 @@ loc_BANKF_E92A:
 	STA byte_RAM_7
 loc_BANKF_E938:
 	JSR WaitForNMI_TurnOnPPU
+	JSR CheckSFX
+	BCC +
 	DEC byte_RAM_7
 	BNE loc_BANKF_E938
 
 	DEC byte_RAM_6
 	BPL loc_BANKF_E92A
-
++
 	JMP GoToNextLevel
 
 
@@ -1678,13 +1689,8 @@ DelayFrames_Loop:
 EndingSceneRoutine:
 	JSR SetScrollXYTo0
 
-	LDA #$80
-	; FDS leftover; $4080 is an old sound register
-	; The prototype had two writes to this address!
-	; It looks like they missed this one, though.
-	STA FDS_WAVETABLE_VOL
-	ASL A
-	STA SoundEffectPlaying1
+	JSR ClearSFX
+
 	LDA #PRGBank_0_1
 	JSR ChangeMappedPRGBank
 
@@ -1961,9 +1967,8 @@ locret_BANKF_EAD1:
 loc_BANKF_EAD2:
 	LDA #$00
 	STA ObjectXLo, X
-	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
-	RTS
+	LDY #SFX_STOP_SLOT
+	JMP PlaySFX
 
 ; End of function sub_BANKF_EAC2
 
@@ -2074,7 +2079,7 @@ NMI_Transition:
 
 	LDA PPUMaskMirror
 	STA PPUMASK
-	JSR DoSoundProcessing
+	JSR UpdateSound
 
 	LDA PPUCtrlMirror
 	STA PPUCTRL
@@ -2297,7 +2302,7 @@ NMI_ResetScreenUpdateIndex:
 
 NMI_DoSoundProcessing:
 NMI_Lag:
-	JSR DoSoundProcessing
+	JSR UpdateSound
 IFDEF DEBUG
 	JMP DoSoundProcessingAndCheckDebug
 ENDIF
@@ -2330,20 +2335,6 @@ ResetPPUAddress:
 	STA PPUADDR
 	STA PPUADDR
 	RTS
-
-
-DoSoundProcessing:
-IFNDEF GS_SWAP
-	LDA #PRGBank_4_5
-	JSR ChangeMappedPRGBankWithoutSaving
-
-	JSR StartProcessingSoundQueue
-
-	LDA MMC3PRGBankTemp
-	JMP ChangeMappedPRGBank
-ELSE
-	RTS
-ENDIF
 
 
 ClearNametablesAndSprites:
@@ -2762,11 +2753,51 @@ NextSpriteFlickerSlot_Exit:
 
 
 LevelMusicIndexes:
-	.db Music1_Overworld
-	.db Music1_Inside ; 1 ; Music1 indexes.
-	.db Music1_Boss ; 2
-	.db Music1_Wart ; 3
-	.db Music1_Subspace ; 4
+	.dw OverworldMusicIndexes
+	.dw InsideMusicIndexes ; 1 ; Music1 indexes.
+	.dw BossMusicIndexes ; 2
+	.dw WartMusicIndexes ; 3
+	.dw SubspaceMusicIndexes ; 4
+
+OverworldMusicIndexes:
+; world	    ?-1				?-2			?-3
+	.db MUSIC_VIOLET_CITY,		MUSIC_AZALEA_TOWN,	MUSIC_CHERRYGROVE_CITY
+	.db MUSIC_ROUTE_36,		MUSIC_ROUTE_37,		MUSIC_LAKE_OF_RAGE
+	.db MUSIC_SURF,			MUSIC_BICYCLE,		MUSIC_CELADON_CITY
+	.db MUSIC_ECRUTEAK_CITY,	MUSIC_GOLDENROD_CITY,	MUSIC_VERMILION_CITY
+	.db MUSIC_ROUTE_2,		MUSIC_VIRIDIAN_CITY,	MUSIC_VIOLET_CITY
+	.db MUSIC_ROUTE_12,		MUSIC_ROUTE_30,		MUSIC_ROUTE_26
+	.db MUSIC_GOLDENROD_CITY,	MUSIC_LAKE_OF_RAGE
+
+InsideMusicIndexes:
+; world	    ?-1			?-2			?-3
+	.db MUSIC_DARK_CAVE,	MUSIC_UNION_CAVE,	MUSIC_LIGHTHOUSE
+	.db MUSIC_SPROUT_TOWER,	MUSIC_BURNED_TOWER,	MUSIC_TIN_TOWER
+	.db MUSIC_MT_MOON,	MUSIC_UNION_CAVE,	MUSIC_LIGHTHOUSE
+	.db MUSIC_DARK_CAVE,	MUSIC_DARK_CAVE,	MUSIC_LIGHTHOUSE
+	.db MUSIC_UNION_CAVE,	MUSIC_DARK_CAVE,	MUSIC_SPROUT_TOWER
+	.db MUSIC_BURNED_TOWER,	MUSIC_MT_MOON,		MUSIC_ROCKET_HIDEOUT
+	.db MUSIC_VICTORY_ROAD,	MUSIC_LIGHTHOUSE
+
+BossMusicIndexes:
+; world	    ?-1					?-2				?-3
+	.db MUSIC_JOHTO_WILD_BATTLE,		MUSIC_JOHTO_TRAINER_BATTLE,	MUSIC_ROCKET_BATTLE
+	.db MUSIC_JOHTO_WILD_BATTLE_NIGHT,	MUSIC_RIVAL_BATTLE,		MUSIC_JOHTO_GYM_LEADER_BATTLE
+	.db MUSIC_JOHTO_WILD_BATTLE,		MUSIC_JOHTO_TRAINER_BATTLE,	MUSIC_ROCKET_BATTLE
+	.db MUSIC_ROCKET_OVERTURE,		MUSIC_RIVAL_BATTLE,		MUSIC_JOHTO_GYM_LEADER_BATTLE
+	.db MUSIC_KANTO_WILD_BATTLE,		MUSIC_KANTO_TRAINER_BATTLE,	MUSIC_KANTO_GYM_LEADER_BATTLE
+	.db MUSIC_KANTO_WILD_BATTLE,		MUSIC_RIVAL_BATTLE,		MUSIC_KANTO_GYM_LEADER_BATTLE
+	.db MUSIC_ROCKET_BATTLE,		MUSIC_JOHTO_GYM_LEADER_BATTLE
+
+WartMusicIndexes:
+REPT 20
+	.db MUSIC_CHAMPION_BATTLE
+ENDR
+
+SubspaceMusicIndexes:
+REPT 20
+	.db MUSIC_MT_MOON_SQUARE
+ENDR
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -2778,10 +2809,13 @@ sub_BANKF_F0F9:
 	BNE loc_BANKF_F11B
 
 	; boss clear fanfare locks player movement
-	LDA MusicPlaying2
-	CMP #Music2_BossClearFanfare
-	BEQ loc_BANKF_F115
-
+	; BUG: Any check now does not lock player movement
+	LDA zCurSFX
+	CMP #SFX_DEX_FANFARE_230_PLUS
+	BNE +
+	JSR CheckSFX
+	BCS loc_BANKF_F115
++
 	LDA PlayerLock
 	BNE loc_BANKF_F115
 
@@ -2816,10 +2850,12 @@ RunFrame_Horizontal:
 
 	; If the boss clear fanfare is playing or `PlayerLock` is set, skip the
 	; player state update subroutine
-	LDA MusicPlaying2
-	CMP #Music2_BossClearFanfare
-	BEQ RunFrame_Horizontal_AfterPlayerState
-
+	LDA zCurSFX
+	CMP #SFX_DEX_FANFARE_230_PLUS
+	BNE +
+	JSR CheckSFX
+	BCS RunFrame_Horizontal_AfterPlayerState
++
 	LDA PlayerLock
 	BNE RunFrame_Horizontal_AfterPlayerState
 
@@ -2872,9 +2908,7 @@ DecrementPlayerStateTimers_Zero:
 	CPY #$08
 	BNE RunFrame_Exit
 
-	LDY CurrentMusicIndex
-	LDA LevelMusicIndexes, Y
-	STA MusicQueue1
+	JMP GetDesignatedMusic
 
 RunFrame_Exit:
 	RTS
@@ -2894,10 +2928,12 @@ RunFrame_Vertical:
 
 	; If the boss clear fanfare is playing or `PlayerLock` is set, skip the
 	; player state update subroutine
-	LDA MusicPlaying2
-	CMP #Music2_BossClearFanfare
-	BEQ RunFrame_Vertical_AfterPlayerState
-
+	LDA zCurSFX
+	CMP #SFX_DEX_FANFARE_230_PLUS
+	BNE +
+	JSR CheckSFX
+	BCS RunFrame_Vertical_AfterPlayerState
++
 	LDA PlayerLock
 	BNE RunFrame_Vertical_AfterPlayerState
 
@@ -4674,38 +4710,6 @@ FollowCurrentAreaPointer:
 	RTS
 
 
-
-;
-; Checks that we're playing the correct music and switches if necessary, unless
-; we're playing the invincibility music.
-;
-; ##### Input
-; - `CompareMusicIndex`: music we should be playing
-; - `CurrentMusicIndex`: music we're actually playing
-; - `StarInvincibilityTimer`: whether the player is invincible
-;
-; ##### Output
-; - `CurrentMusicIndex`: music we should be plathing
-; - `MusicQueue1`: song to play if we need to change the music
-;
-EnsureCorrectMusic:
-	LDA CompareMusicIndex
-	CMP CurrentMusicIndex
-	BEQ EnsureCorrectMusic_Exit
-
-	TAX
-	STX CurrentMusicIndex
-	LDA StarInvincibilityTimer
-	CMP #$08
-	BCS EnsureCorrectMusic_Exit
-
-	LDA LevelMusicIndexes, X
-	STA MusicQueue1
-
-EnsureCorrectMusic_Exit:
-	RTS
-
-
 DoAreaReset:
 	LDA #$00
 	STA AreaInitialized
@@ -4765,13 +4769,7 @@ KillPlayer:
 	LDA #PlayerState_Dying ; Mark player as dead
 	STA PlayerState
 	LDA #$00 ; Clear some variables
-IFNDEF RESPAWN_INSTEAD_OF_DEATH
 	STA PlayerHealth
-ELSE
-	NOP
-	NOP
-	NOP
-ENDIF
 	STA CrouchJumpTimer
 	STA StarInvincibilityTimer
 	LDA #SpriteAnimation_Dead ; Set player animation to dead?
@@ -4799,22 +4797,11 @@ loc_BANKF_F747:
 	LDX byte_RAM_D
 
 loc_BANKF_F749:
-IFNDEF RESPAWN_INSTEAD_OF_DEATH
 	; Set music to death jingle
-	LDA #Music2_DeathJingle
-	STA MusicQueue2
-	; BUG: Setting DPCM at the same time as music
-	LDA #DPCM_PlayerDeath
-	STA DPCMQueue
-	RTS
-ELSE
-	LDA #DPCM_PlayerDeath
-	STA DPCMQueue
-	JMP RespawnPlayer
-	NOP
-	NOP
-	NOP
-ENDIF
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #SFX_DEX_FANFARE_LESS_THAN_20
+	JMP PlaySFX
 
 
 ;
@@ -5497,54 +5484,6 @@ LoadMarioSleepingCHRBanks:
 	RTS
 
 
-IFDEF RESPAWN_INSTEAD_OF_DEATH
-PauseRespawn:
-	; Check conditions where we shouldn't allow respawn
-	LDA PlayerLock
-	BNE PauseRespawn_Exit
-	; BNE PauseRespawn_ShowPauseScreen
-
-PauseRespawn_KillPlayer:
-	JSR KillPlayer
-PauseRespawn_Exit:
-	LDA IsHorizontalLevel
-	BEQ PauseRespawn_Vertical
-	JMP HorizontalLevel_CheckSubArea
-PauseRespawn_Vertical:
-	JMP VerticalLevel_ProcessFrame
-
-PauseRespawn_ShowPauseScreen:
-	JSR PauseScreen_ExtraLife
-	JMP SetStack100Pause
-
-RespawnPlayer:
-	; Stop invincibility music
-	LDA MusicPlaying1
-	CMP #Music1_Invincible
-	BNE RespawnPlayer_AfterMusic
-	LDY CurrentMusicIndex
-	LDA LevelMusicIndexes, Y
-	STA MusicQueue1
-RespawnPlayer_AfterMusic:
-	LDA #SpriteAnimation_Standing
-	STA PlayerAnimationFrame
-	RTS
-
-
-ResetSubAreaJarLayout:
-	LDA #PRGBank_6_7
-	JSR ChangeMappedPRGBank
-
-	JSR ClearSubAreaTileLayout
-
-	LDA #PRGBank_0_1
-	JSR ChangeMappedPRGBank
-
-	RTS
-
-ENDIF
-
-
 IF INES_MAPPER == MAPPER_MMC5
 RESET_MMC5:
 	; Set CHR mode 3
@@ -5575,23 +5514,13 @@ RESET_MMC5:
 	LDA #$80 ; ROM bank 0
 	STA MMC5_PRGBankSwitch3 ; $8000-$BFFF
 
-	IFDEF EXPAND_PRG
-		; PRG bank 2
-		LDA #$9E ; ROM bank E
-		STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
+	; PRG bank 2
+	LDA #$9E ; ROM bank E
+	STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
 
-		; PRG bank 3
-		LDA #$9F ; ROM bank F
-		STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
-	ELSE
-		; PRG bank 2
-		LDA #$8E ; ROM bank E
-		STA MMC5_PRGBankSwitch4 ; $C000-$DFFF
-
-		; PRG bank 3
-		LDA #$8F ; ROM bank F
-		STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
-	ENDIF
+	; PRG bank 3
+	LDA #$9F ; ROM bank F
+	STA MMC5_PRGBankSwitch5 ; $E000-$FFFF
 ENDIF
 ;
 ; Public RESET
@@ -5629,6 +5558,7 @@ ELSE ;  INES_MAPPER == MAPPER_MMC3
 	LDA #$80
 	STA MMC3_PRGRamProtect
 ENDIF
+	JSR InitSound
 	JMP StartGame
 
 
@@ -5761,8 +5691,29 @@ ELSE
 ENDIF
 	RTS
 
+GetDesignatedMusic:
+	LDY CurrentLevel
+	LDA (zDesignatedPointer), Y
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	TAY
+	JMP PlayMusic
+
+DesignateMusic:
+	LDA CompareMusicIndex
+	ASL A
+	TAY
+	LDA LevelMusicIndexes, Y
+	STA zDesignatedPointer
+	INY
+	LDA LevelMusicIndexes, Y
+	STA zDesignatedPointer + 1
+	RTS
+
 IRQ:
 	RTI
+
+.include "gs-src/home/audio.asm"
 
 ;
 ; Vectors for the NES CPU. These must ALWAYS be at $FFFA!

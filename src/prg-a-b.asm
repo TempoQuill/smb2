@@ -575,6 +575,7 @@ BonusChanceBackgroundPalettes:
 	.db $0F, $21, $12, $01 ; $0C
 
 BonusChanceReel1Order:
+IFNDEF DEBUG
 	.db Slot_Snifit ; $00
 	.db Slot_Turnip ; $01 ; Graphics exist for a mushroom (not used)
 	.db Slot_Star   ; $02
@@ -583,7 +584,18 @@ BonusChanceReel1Order:
 	.db Slot_Star   ; $05
 	.db Slot_Cherry ; $06
 	.db Slot_Turnip ; $07
+ELSE
+	.db Slot_Cherry ; $00
+	.db Slot_Cherry ; $01 ; Graphics exist for a mushroom (not used)
+	.db Slot_Cherry ; $02
+	.db Slot_Cherry ; $03
+	.db Slot_Snifit ; $04
+	.db Slot_Star   ; $05
+	.db Slot_Cherry ; $06
+	.db Slot_Turnip ; $07
+ENDIF
 BonusChanceReel2Order:
+IFNDEF DEBUG
 	.db Slot_Star   ; $00
 	.db Slot_Snifit ; $01
 	.db Slot_Cherry ; $02
@@ -592,7 +604,18 @@ BonusChanceReel2Order:
 	.db Slot_Star   ; $05
 	.db Slot_Snifit ; $06
 	.db Slot_Turnip ; $07
+ELSE
+	.db Slot_Cherry ; $00
+	.db Slot_Cherry ; $01
+	.db Slot_Cherry ; $02
+	.db Slot_Cherry ; $03
+	.db Slot_Cherry ; $04
+	.db Slot_Star   ; $05
+	.db Slot_Snifit ; $06
+	.db Slot_Turnip ; $07
+ENDIF
 BonusChanceReel3Order:
+IFNDEF DEBUG
 	.db Slot_Star   ; $00
 	.db Slot_Snifit ; $01
 	.db Slot_Star   ; $02
@@ -601,6 +624,16 @@ BonusChanceReel3Order:
 	.db Slot_Cherry ; $05
 	.db Slot_Turnip ; $06
 	.db Slot_Snifit ; $07
+ELSE
+	.db Slot_Cherry ; $00
+	.db Slot_Cherry ; $01
+	.db Slot_Cherry ; $02
+	.db Slot_Cherry ; $03
+	.db Slot_Star   ; $04
+	.db Slot_Cherry ; $05
+	.db Slot_Turnip ; $06
+	.db Slot_Snifit ; $07
+ENDIF
 
 BonusChanceUnusedCoinSprite:
 	.db $F8, $19, $01, $60, $F8, $1B, $01, $68
@@ -754,8 +787,12 @@ LoadCHRSelect:
 
 	JSR DisableNMI
 
-	LDA #Music1_CharacterSelect
-	STA MusicQueue1
+	TYA
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #MUSIC_MAIN_MENU
+	JSR PlayMusic
+	TAY
 	LDA CurrentCharacter
 	STA PreviousCharacter
 	LDA CurrentWorld
@@ -797,11 +834,18 @@ EndOfLevelSlotMachine_AB:
 
 	JSR sub_BANKF_EA33
 
-	LDA #Music2_SlotWarpFanfare
-	STA MusicQueue2
 	LDA SlotMachineCoins
 	BEQ EndOfLevelSlotMachine_Exit
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #MUSIC_GAME_CORNER
+	JSR PlayMusic
+	JSR Delay80Frames
 	JMP loc_BANKF_E7F2
 
 EndOfLevelSlotMachine_Exit:
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #SFX_QUIT_SLOTS
+	JSR PlaySFX
 	JMP NoCoinsForSlotMachine

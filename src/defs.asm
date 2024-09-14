@@ -125,6 +125,22 @@ PRGBank_8_9 = $04
 PRGBank_A_B = $05
 PRGBank_C_D = $06
 PRGBank_E_F = $07
+PRG_Audio = $07
+PRG_Music0 = $07
+PRG_Music1 = $08
+PRG_Music2 = $09
+IFNDEF BETA_SFX
+  PRG_MonCries = $09
+ELSE
+  PRG_MonCries = $0B
+ENDIF
+PRG_Music3 = $0A
+PRG_Music4 = $0B
+PRG_DPCM0 = $17
+PRG_DPCM1 = $18
+PRG_DPCM2 = $19
+PRG_DPCM3 = $1A
+PRG_DPCM4 = $1B
 
 ; ---------------------------------------------------------------------------
 

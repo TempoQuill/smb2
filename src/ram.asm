@@ -20,7 +20,7 @@
 ;
 ;   - 8000-FFFF: you're in the wrong file, pal. that's rom.
 ;
-
+.enum 0
 byte_RAM_0:
 	.dsb 1 ; $0000
 byte_RAM_1:
@@ -383,6 +383,7 @@ CurrentMusicPointer:
 NextFrequencyLo:
 	.dsb 1 ; $00bd
 NextFrequencyHi:
+zDesignatedPointer:
 	.dsb 1 ; $00be
 ; $00BF and $00C0 are never written, but referenced by the music engine.
 ; Seems like they were intended to be either instrument start offets or
@@ -390,17 +391,17 @@ NextFrequencyHi:
 ; from the code, and doesn't actually function as written?
 MusicSquareInstrumentStartOffset: ; (unused; read but never initialized)
 	.dsb 1 ; $00bf
-MusicSquareEnvelope: ; (unused; always overwritten)
-	.dsb 1 ; $00c0
-SoundEffect1DataOffset:
-	.dsb 1 ; $00c1
-MusicSquare2Lo: ; (unused)
-	.dsb 1 ; $00c2
-	.dsb 1 ; $00c3
-SoundEffectTimer2:
-	.dsb 1 ; $00c4
-; FOR RENT
-	.dsb 1 ; $00c5
+MusicSquareEnvelope = $00c0
+SoundEffect1DataOffset = $00c1
+MusicSquare2Lo = $00c2
+SoundEffectTimer2 = $00c4
+
+zCurTrackAudioPointer:
+	.dsb 2 ; $00c0
+zNoiseSampleAddress:
+	.dsb 2 ; $00c2
+zDPCMAddress:
+	.dsb 2 ; $00c4
 ; FOR RENT
 	.dsb 1 ; $00c6
 PlayerAnimationFrame:
@@ -1984,6 +1985,7 @@ PPUBuffer_ErasePauseText:
 	.dsb 1 ; $06ef
 	.dsb 1 ; $06f0
 	.dsb 1 ; $06f1
+zWindow1:
 MMC3PRGBankTemp:
 	.dsb 1 ; $06f2
 
@@ -2026,7 +2028,7 @@ ResetCHRLatch:
 ; Not sure if anything else uses this area yet
 SubAreaTileLayout:
 	.dsb $100   ; $0700-$07FF
-
+.ende
 
 ;
 ; PPU registers
@@ -2079,6 +2081,40 @@ SND_CHN = $4015
 JOY1 = $4016
 JOY2 = $4017
 
+; Pokemon GS
+rNR10 = $4000 ; 0-3: volume/sweep speed* 4:   volume sweep Flag 5:   counter flag 6-7: cycle id
+rNR11 = $4001 ; 0-2: shift multiplier    3:   direction         4-6: period       7:   power flag
+rNR12 = $4002 ; 0-7: pitch
+rNR13 = $4003 ; 0-2: pitch               3-7: length
+
+rNR20 = $4004
+rNR21 = $4005
+rNR22 = $4006
+rNR23 = $4007
+
+; $4009 isn't functional
+rNR30 = $4008 ; 0-6: linear load* 7:   linear flag
+rNR32 = $400a ; 0-7: pitch
+rNR33 = $400b ; 0-2: pitch        3-7: length load
+
+; $400d isn't functional
+rNR40 = $400c ; 0-3: volume/sweep speed* 4: volume sweep Flag 5: counter flag
+rNR42 = $400e ; 0-3: pitch               7: period loop flag
+rNR43 = $400f ; 3-7: length load
+
+; there are a few hardware bugs with the DPCM to beware of
+; firstly, sample playback can clobber rJOY with forged inputs, most NES title
+;	work around this with rereads, more on this bug at UpdateJoypad
+; secondly, writes to rMIX may replay the sample currently playing, a retrigger
+;	if you will
+; thirdly, a byte gets added to the total size of the currently playing sample
+;	so a sample with a size of $20 reads $201 bytes of data
+rNR50 = $4010 ; 0-3: pitch 6: loop flag 7: IRQ flag
+rNR51 = $4011 ; 0-6: delta counter
+rNR52 = $4012 ; 0-7: (offset - $c000) / $40
+rNR53 = $4013 ; 0-7: (size - 1) / $10
+
+rMIX = $4015 
 ; Leftover code in prg-e-f references this
 ; (otherwise unused, since, well, not FDS)
 FDS_WAVETABLE_VOL = $4080
@@ -2134,7 +2170,8 @@ MMC5_CHRBankSwitchUpper = $5130
 
 MMC5_IRQScanlineCompare = $5203
 MMC5_IRQStatus = $5204
-
+MMC5_Multiplier1 = $5205
+MMC5_Multiplier2 = $5206
 
 ;
 ; Cartridge on-board RAM
@@ -2188,6 +2225,130 @@ RawJarData = $7a00
 RawEnemyDataAddr = $7b00
 
 ItemCarryYOffsetsRAM = $7f00
+
+.enum $5c00
+zAudio:
+zMusicPlaying:
+	.dsb 1
+	.dsb 2
+zCurTrackVolumeEnvAndDuty:
+	.dsb 1
+zCurTrackLinearEnv:
+	.dsb 1
+zCurTrackPitchSweep:
+	.dsb 1
+zCurTrackRawPitch:
+	.dsb 2
+zCurTrackTemp:
+	.dsb 1
+zCurNoteDuration:
+	.dsb 1
+zCurMusicByte:
+	.dsb 1
+zCurChannel:
+	.dsb 1
+;zVolume:
+	.dsb 1
+	.dsb 1
+zMusicID:
+	.dsb 1
+zMusicBank:
+	.dsb 1
+zMusicHeader:
+	.dsb 2
+	.dsb 2
+zNoiseSampleDelay:
+	.dsb 1
+	.dsb 1
+	.dsb 2
+zDPCMBank:
+	.dsb 1
+zDPCMOffset:
+	.dsb 1
+zDPCMLength:
+	.dsb 1
+zDPCMPitch:
+	.dsb 1
+zMusicDrumSet:
+	.dsb 1
+zSFXDrumSet:
+	.dsb 1
+zLowHealthAlarm:
+	.dsb 1
+;zMusicFade:
+zMusicSilence:
+	.dsb 1
+;zMusicFadeCount:
+zMusicSilenceCount:
+	.dsb 1
+;zMusicFadeID:
+zMusicSilenceID:
+	.dsb 1
+zMusicSilenceOffset:
+	.dsb 1
+	.dsb 5
+zCryPitch:
+	.dsb 2
+zCryLength:
+zTempSpeed:
+	.dsb 2
+;zLastVolume:
+zUnusedF9Flag:
+	.dsb 1
+zSFXPriority:
+	.dsb 1
+zTempPitch:
+	.dsb 1
+zChannel1JumpCondition:
+	.dsb 1
+zChannel2JumpCondition:
+	.dsb 1
+zChannel3JumpCondition:
+	.dsb 1
+zChannel4JumpCondition:
+	.dsb 1
+zChannel5JumpCondition:
+	.dsb 1
+;zStereoPanningMask:
+;zCryTracks:
+zSFXDuration:
+	.dsb 1
+zCurSFX:
+	.dsb 1
+zCurSlideDistance:
+	.dsb 2
+zCurSlideRawPitch:
+zTempRawPitch:
+	.dsb 2
+zAudioEnd:
+	.dsb 1
+	.dsb 1
+zMapMusic:
+	.dsb 1
+zDontPlayMusicOnReload:
+	.dsb 1
+iChannel1:
+	.dsb 50
+iChannel2:
+	.dsb 50
+iChannel3:
+	.dsb 50
+iChannel4:
+	.dsb 50
+iChannel5:
+	.dsb 50
+iChannel6:
+	.dsb 50
+iChannel7:
+	.dsb 50
+iChannel8:
+	.dsb 50
+iChannel9:
+	.dsb 50
+iChannel10:
+	.dsb 50
+iChannelsEnd:
+.ende
 
 MMC3_BankSelect = $8000
 MMC3_BankData = $8001

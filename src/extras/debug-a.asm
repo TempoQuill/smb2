@@ -86,7 +86,8 @@ DebugMenu_Init:
 	JSR WaitForNMI
 
 	; Fun little sound
-	JSR DebugMenu_MenuStart
+	LDY #SFX_MENU
+	JSR PlaySFX
 
 	JSR DisableNMI
 
@@ -249,12 +250,13 @@ DebugMenu_StartLevel:
 	BNE DebugMenu_JumpMenuLoop
 
 DebugMenu_DoStartLevel:
-	LDA #Music2_StopMusic
-	STA MusicQueue2
+	LDY #MUSIC_NONE
+	JSR PlayMusic
 
 	JSR WaitForNMI
 
-	JSR DebugMenu_MenuConfirm
+	LDY #SFX_ESCAPE_ROPE
+	JSR PlaySFX
 
 	JSR DebugMenu_FullReset
 
@@ -485,26 +487,14 @@ DebugMenu_Health:
 -q
 	JMP DebugMenu_MenuLoop
 
-DebugMenu_MenuStart:
-	LDA #DPCM_PlayerDeath
-	STA DPCMQueue
-	RTS
-
 DebugMenu_MenuMove:
 DebugMenu_MenuChange:
-	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
-	RTS
-
-DebugMenu_MenuConfirm:
-	LDA #SoundEffect2_CoinGet
-	STA SoundEffectQueue2
-	RTS
+	LDY #SFX_READ_TEXT
+	JMP PlaySFX
 
 DebugMenu_MenuError:
-	LDA #DPCM_PlayerHurt
-	STA DPCMQueue
-	RTS
+	LDY #SFX_WRONG
+	JMP PlaySFX
 
 
 ;
@@ -579,10 +569,7 @@ DebugMenu_ResetArea:
 	LDA #$00
 	STA PlayerXVelocity
 
-	JSR DoAreaReset
-
-	RTS
-
+	JMP DoAreaReset
 
 DebugMenu_FullReset:
 	; Reset a bunch of level flags

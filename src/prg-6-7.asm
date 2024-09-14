@@ -3767,12 +3767,14 @@ LoadAreaMusic:
 	CMP CurrentMusicIndex
 	BEQ LoadAreaMusic_Exit
 
+	JSR DesignateMusic
+
 	LDA StarInvincibilityTimer
 	CMP #$08
 	BCS LoadAreaMusic_Exit
 
-	LDA #Music2_StopMusic
-	STA MusicQueue2
+	LDY #MUSIC_NONE
+	JMP PlayMusic
 
 LoadAreaMusic_Exit:
 	RTS
@@ -3782,26 +3784,71 @@ LoadAreaMusic_Exit:
 ; Unreferenced? A similar routine exists in Bank F, so it seems like this may
 ; be leftover code from a previous version.
 ;
-Unused_LevelMusicIndexes:
-	.db Music1_Overworld
-	.db Music1_Inside
-	.db Music1_Boss
-	.db Music1_Wart
-	.db Music1_Subspace
+Unused_OverowrldMusicIndexes:
+; world	    ?-1				?-2			?-3
+	.db MUSIC_VIOLET_CITY,		MUSIC_AZALEA_TOWN,	MUSIC_CHERRYGROVE_CITY
+	.db MUSIC_ROUTE_36,		MUSIC_ROUTE_37,		MUSIC_LAKE_OF_RAGE
+	.db MUSIC_SURF,			MUSIC_VIRIDIAN_CITY,	MUSIC_CELADON_CITY
+	.db MUSIC_ECRUTEAK_CITY,	MUSIC_GOLDENROD_CITY,	MUSIC_VERMILION_CITY
+	.db MUSIC_ROUTE_2,		MUSIC_VIRIDIAN_CITY,	MUSIC_VIOLET_CITY
+	.db MUSIC_ROUTE_12,		MUSIC_ROUTE_30,		MUSIC_ROUTE_26
+	.db MUSIC_GOLDENROD_CITY,	MUSIC_LAKE_OF_RAGE
+
+Unused_InsideMusicIndexes:
+; world	    ?-1			?-2			?-3
+	.db MUSIC_DARK_CAVE,	MUSIC_UNION_CAVE,	MUSIC_LIGHTHOUSE
+	.db MUSIC_SPROUT_TOWER,	MUSIC_BURNED_TOWER,	MUSIC_TIN_TOWER
+	.db MUSIC_MT_MOON,	MUSIC_UNION_CAVE,	MUSIC_LIGHTHOUSE
+	.db MUSIC_DARK_CAVE,	MUSIC_DARK_CAVE,	MUSIC_LIGHTHOUSE
+	.db MUSIC_UNION_CAVE,	MUSIC_DARK_CAVE,	MUSIC_SPROUT_TOWER
+	.db MUSIC_BURNED_TOWER,	MUSIC_MT_MOON,		MUSIC_ROCKET_HIDEOUT
+	.db MUSIC_VICTORY_ROAD,	MUSIC_LIGHTHOUSE
+
+Unused_BossMusicIndexes:
+; world	    ?-1					?-2				?-3
+	.db MUSIC_JOHTO_WILD_BATTLE,		MUSIC_JOHTO_TRAINER_BATTLE,	MUSIC_ROCKET_BATTLE
+	.db MUSIC_JOHTO_WILD_BATTLE_NIGHT,	MUSIC_RIVAL_BATTLE,		MUSIC_JOHTO_GYM_LEADER_BATTLE
+	.db MUSIC_JOHTO_WILD_BATTLE,		MUSIC_JOHTO_TRAINER_BATTLE,	MUSIC_ROCKET_BATTLE
+	.db MUSIC_ROCKET_OVERTURE,		MUSIC_RIVAL_BATTLE,		MUSIC_JOHTO_GYM_LEADER_BATTLE
+	.db MUSIC_KANTO_WILD_BATTLE,		MUSIC_KANTO_TRAINER_BATTLE,	MUSIC_KANTO_GYM_LEADER_BATTLE
+	.db MUSIC_KANTO_WILD_BATTLE,		MUSIC_RIVAL_BATTLE,		MUSIC_KANTO_GYM_LEADER_BATTLE
+	.db MUSIC_ROCKET_BATTLE,		MUSIC_JOHTO_GYM_LEADER_BATTLE
+
+Unused_WartMusicIndexes:
+REPT 20
+	.db MUSIC_CHAMPION_BATTLE
+ENDR
+
+Unused_SubspaceMusicIndexes:
+REPT 20
+	.db MUSIC_MT_MOON_SQUARE
+ENDR
+
+Unused_LevelIndexPointers:
+	.dw Unused_OverowrldMusicIndexes
+	.dw Unused_InsideMusicIndexes
+	.dw Unused_BossMusicIndexes
+	.dw Unused_WartMusicIndexes
+	.dw Unused_SubspaceMusicIndexes
 
 Unused_ChangeAreaMusic:
 	LDA CompareMusicIndex
 	CMP CurrentMusicIndex
 	BEQ Unused_ChangeAreaMusic_Exit
 
+	STA CurrentMusicIndex
+	ASL A
 	TAX
-	STX CurrentMusicIndex
 	LDA StarInvincibilityTimer
 	CMP #$08
-	BCS LoadAreaMusic_Exit
+	BCS Unused_ChangeAreaMusic_Exit
 
-	LDA Unused_LevelMusicIndexes, X
-	STA MusicQueue1
+	LDA Unused_LevelIndexPointers, X
+	STA zDesignatedPointer
+	INX
+	LDA Unused_LevelIndexPointers, X
+	STA zDesignatedPointer + 1
+	JMP GetDesignatedMusic
 
 Unused_ChangeAreaMusic_Exit:
 	RTS
@@ -5131,8 +5178,12 @@ ENDIF
 ClearLayoutAndPokeMusic:
 	JSR ClearSubAreaTileLayout
 
-	LDA #Music1_Inside
-	STA MusicQueue1
+	TYA
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #MUSIC_UNION_CAVE
+	JSR PlayMusic
+	TAY
 	LDA #$01
 	STA CurrentMusicIndex
 	JMP loc_BANKF_E5E1

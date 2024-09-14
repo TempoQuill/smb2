@@ -1901,8 +1901,8 @@ SetObjectLocks_Loop:
 
 
 GrowShrinkSFXIndexes:
-	.db SoundEffect2_Shrinking
-	.db SoundEffect2_Growing
+	.db SFX_SUPER_EFFECTIVE
+	.db SFX_POTION
 
 
 HandlePlayerState:
@@ -1919,7 +1919,9 @@ HandlePlayerState:
 
 	LDY PlayerCurrentSize
 	LDA GrowShrinkSFXIndexes, Y
-	STA SoundEffectQueue2
+	TAY
+	JSR ClearSFX
+	JSR PlaySFX
 	LDA #$1E
 	STA PlayerStateTimer
 	LDA #PlayerState_ChangingSize
@@ -1938,11 +1940,7 @@ loc_BANK0_8A26:
 	.dw HandlePlayerState_GoingDownJar ; Going down jar
 	.dw HandlePlayerState_ExitingJar ; Exiting jar
 	.dw HandlePlayerState_HawkmouthEating ; Hawkmouth eating
-IFNDEF RESPAWN_INSTEAD_OF_DEATH
 	.dw HandlePlayerState_Dying ; Dying
-ELSE
-	.dw HandlePlayerState_Respawning
-ENDIF
 	.dw HandlePlayerState_ChangingSize ; Changing size
 
 
@@ -1986,8 +1984,13 @@ HandlePlayerState_Dying:
 
 	LDA PlayerScreenYHi
 	CMP #02
-	BEQ LoseALife
+	BNE HandlePlayerState_Dying_Physics
 
+	JSR CheckSFX
+	BCS locret_BANK0_8A86
+	BCC LoseALife
+
+HandlePlayerState_Dying_Physics:
 	JSR ApplyPlayerPhysicsY
 
 	LDA PlayerYVelocity
@@ -2033,8 +2036,10 @@ HandlePlayerState_Lifting:
 	CPY #$07
 	BNE loc_BANK0_8A9D
 
-	LDA #DPCM_ItemPull
-	STA DPCMQueue
+	TYA
+	LDY #SFX_CHANGE_DEX_MODE
+	JSR PlaySFX
+	TAY
 
 loc_BANK0_8A9D:
 	DEC ObjectBeingCarriedTimer, X
@@ -2162,8 +2167,10 @@ PlayerClimbAnimation:
 	LDA PlayerDirection
 	EOR #$01
 	STA PlayerDirection
-	LDA #SoundEffect2_Climbing
-	STA SoundEffectQueue2
+	TYA
+	LDY #SFX_SWITCH_POCKETS
+	JSR PlaySFX
+	TAY
 
 PlayerClimbAnimation_Exit:
 	RTS
@@ -2435,8 +2442,8 @@ loc_BANK0_8C2B:
 	STA PlayerAnimationFrame
 	JSR PlayerStartJump
 
-	LDA #SoundEffect2_Jump
-	STA SoundEffectQueue2
+	LDY #SFX_JUMP_OVER_LEDGE
+	JSR PlaySFX
 
 loc_BANK0_8C3D:
 	LDA PlayerRidingCarpet
@@ -2910,8 +2917,8 @@ loc_BANK0_8E42:
 	LDA #$0A
 	STA PlayerWalkFrameCounter
 	DEC HoldingItem
-	LDA #SoundEffect1_ThrowItem
-	STA SoundEffectQueue1
+	LDY #SFX_THROW_BALL
+	JSR PlaySFX
 	LDA #$00
 	STA PlayerDucking
 	STA Player1JoypadPress
@@ -3412,8 +3419,8 @@ PlayerTileCollision_CheckCherryAndClimbable_AfterTick:
 	JSR CreateStarman
 
 PlayerTileCollision_Cherry:
-	LDA #SoundEffect1_CherryGet
-	STA SoundEffectQueue1
+	LDY #SFX_EGG_CRACK
+	JSR PlaySFX
 	LDA #BackgroundTile_Sky
 	JMP loc_BANK0_937C
 
@@ -3855,8 +3862,8 @@ DoorHandling_GoThroughDoor:
 	INC PlayerLock
 	JSR SnapPlayerToTile
 
-	LDA #DPCM_DoorOpenBombBom
-	STA DPCMQueue
+	LDY #SFX_ENTER_DOOR
+	JSR PlaySFX
 
 DoorHandling_Exit:
 	RTS
@@ -5290,8 +5297,8 @@ InitTitleBackgroundPalettesLoop:
 	JSR WaitForNMI_TitleScreen
 
 	; Cue the music!
-	LDA #Music1_Title
-	STA MusicQueue1
+	LDY #MUSIC_TITLE
+	JSR PlayMusic
 	JSR WaitForNMI_TitleScreen_TurnOnPPU
 
 	; Set up the delay before showing the story
@@ -5578,8 +5585,8 @@ loc_BANK0_9C19:
 	BEQ loc_BANK0_9C35
 
 loc_BANK0_9C1F:
-	LDA #Music2_StopMusic
-	STA MusicQueue2
+	LDY #MUSIC_NONE
+	JSR PlayMusic
 	JSR WaitForNMI_TitleScreen
 
 	LDA #$00
@@ -5629,111 +5636,6 @@ loc_BANK0_9C52:
 ; End of function TitleScreen
 
 
-IFDEF RESPAWN_INSTEAD_OF_DEATH
-HandlePlayerState_Respawning:
-	; Start from zero
-	LDA #PlayerState_Normal
-	STA PlayerState
-	STA PlayerXVelocity
-	STA PlayerYVelocity
-
-	; Are the in a jar?
-	LDA InJarType
-	BNE HandlePlayerState_Respawning_Jar
-
-	; Are we in subspace?
-	LDA InSubspaceOrJar
-	BEQ HandlePlayerState_Respawning_Regular
-
-HandlePlayerState_Respawning_Subspace:
-	; Exit subspace immediately
-	LDA #$00
-	STA InSubspaceOrJar
-	STA SubspaceTimer
-
-	RTS
-
-HandlePlayerState_Respawning_Jar:
-	; Pointer jars reload like an area
-	CMP #$02
-	BEQ HandlePlayerState_Respawning_AreaReset
-
-HandlePlayerState_Respawning_JarSubArea:
-	; Clear the sub-area tile layout
-	JSR ResetSubAreaJarLayout
-
-	; Redraw tiles (horizontal level)
-	JSR WaitForNMI_TurnOffPPU
-
-	; Set update boundary to page 10 for sub-area
-	LDA #$0A
-	STA BackgroundUpdateBoundary
-
-HandlePlayerState_Respawning_JarSubArea_Loop:
-	JSR WaitForNMI
-
-	JSR sub_BANK0_87AA
-
-	LDA byte_RAM_537
-	BEQ HandlePlayerState_Respawning_JarSubArea_Loop
-
-	JSR WaitForNMI_TurnOnPPU
-	JSR WaitForNMI
-
-	JSR DoAreaReset
-
-	JSR ApplyAreaTransition
-
-	RTS
-
-HandlePlayerState_Respawning_Regular:
-	; Reset level
-	LDA CurrentLevel_Init
-	STA CurrentLevel
-	LDA CurrentLevelArea_Init
-	STA CurrentLevelArea
-	LDA CurrentLevelEntryPage_Init
-	STA CurrentLevelEntryPage
-	LDA TransitionType_Init
-	STA TransitionType
-
-	; Reset player
-	LDA PlayerXLo_Init
-	STA PlayerXLo
-	LDA PlayerYLo_Init
-	STA PlayerYLo
-	LDA PlayerScreenX_Init
-	STA PlayerScreenX
-	LDA PlayerScreenYLo_Init
-	STA PlayerScreenYLo
-	LDA PlayerYVelocity_Init
-	STA PlayerYVelocity
-	LDA PlayerState_Init
-	STA PlayerState
-
-	LDA #$00
-	STA PlayerXVelocity
-	STA PlayerCurrentSize
-	STA InSubspaceOrJar
-	STA SubspaceTimer
-
-	JSR RestorePlayerToFullHealth
-
-	JSR LoadCharacterCHRBanks
-
-HandlePlayerState_Respawning_AreaReset:
-	JSR DoAreaReset
-
-	; Break out of HandlePlayerState
-	PLA
-	PLA
-	; Break out of RunFrame
-	PLA
-	PLA
-
-	; Kick off the level again
-	JMP StartLevel
-ENDIF
 
 EndingPPUDataPointers:
 	.dw PPUBuffer_301
@@ -5967,8 +5869,10 @@ FreeSubconsScene_JumpingLoop:
 	CMP #$25
 	BNE FreeSubconsScene_JumpingLoop
 
-	LDY #Music2_EndingAndCast
-	STY MusicQueue2
+	LDY #MUSIC_NONE
+	JSR PlayMusic
+	LDY #MUSIC_CREDITS
+	JSR PlayMusic
 	BNE FreeSubconsScene_JumpingLoop
 
 FreeSubconsScene_Exit:
@@ -6029,8 +5933,8 @@ FreeSubconsScene_Phase1:
 	STA PlayerAnimationFrame
 
 FreeSubconsScene_Jump:
-	LDA #SoundEffect2_Jump
-	STA SoundEffectQueue2
+	LDY #SFX_JUMP_OVER_LEDGE
+	JSR PlaySFX
 	JMP PlayerStartJump
 
 
@@ -6128,8 +6032,10 @@ FreeSubconsScene_Phase4:
 	LDA #SpriteAnimation_Jumping
 	STA PlayerAnimationFrame
 
-	LDA #DPCM_ItemPull
-	STA DPCMQueue
+	TYA
+	LDY #SFX_CHANGE_DEX_MODE
+	JSR PlaySFX
+	TAY
 
 	LDA #$A0
 	STA ObjectYVelocity + 8
@@ -6198,8 +6104,8 @@ FreeSubconsScene_Subcons_Loop:
 	CMP #$01
 	BNE FreeSubconsScene_Subcons_Next
 
-	LDA #SoundEffect1_ThrowItem
-	STA SoundEffectQueue1
+	LDY #SFX_EVOLVED
+	JSR PlaySFX
 	BNE FreeSubconsScene_Subcons_Next
 
 FreeSubconsScene_Subcons_Movement:
@@ -7755,8 +7661,8 @@ PlayerTileCollision_HurtPlayer:
 
 loc_BANK1_BAE5:
 	STA PlayerYVelocity
-	LDA #DPCM_PlayerHurt
-	STA DPCMQueue
+	LDY #SFX_BUMP
+	JMP PlaySFX
 
 locret_BANK1_BAEC:
 	RTS
@@ -7908,3 +7814,32 @@ ExitSubArea_Loop:
 	JSR WaitForNMI_TurnOnPPU
 
 	JMP HorizontalLevel_CheckScroll
+
+;
+; Checks that we're playing the correct music and switches if necessary, unless
+; we're playing the invincibility music.
+;
+; ##### Input
+; - `CompareMusicIndex`: music we should be playing
+; - `CurrentMusicIndex`: music we're actually playing
+; - `StarInvincibilityTimer`: whether the player is invincible
+;
+; ##### Output
+; - `CurrentMusicIndex`: music we should be playing
+; - `MusicQueue1`: song to play if we need to change the music
+;
+EnsureCorrectMusic:
+	LDA CompareMusicIndex
+	CMP CurrentMusicIndex
+	BEQ EnsureCorrectMusic_Exit
+
+	TAX
+	STX CurrentMusicIndex
+	LDA StarInvincibilityTimer
+	CMP #$08
+	BCS EnsureCorrectMusic_Exit
+
+	JMP GetDesignatedMusic
+
+EnsureCorrectMusic_Exit:
+	RTS
