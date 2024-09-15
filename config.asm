@@ -120,7 +120,7 @@ ENDIF
 
 ; Include debugging tools
 ; (push Select to open the debug menu)
-DEBUG = 1
+; DEBUG = 1
 
 
 ; ----------------------------------------
