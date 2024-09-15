@@ -1920,8 +1920,10 @@ HandlePlayerState:
 	LDY PlayerCurrentSize
 	LDA GrowShrinkSFXIndexes, Y
 	TAY
+	CPY #SFX_SUPER_EFFECTIVE
+	BNE +
 	JSR ClearSFX
-	JSR PlaySFX
++	JSR PlaySFX
 	LDA #$1E
 	STA PlayerStateTimer
 	LDA #PlayerState_ChangingSize
