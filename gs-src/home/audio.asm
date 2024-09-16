@@ -12,6 +12,9 @@ InitSound:
 
 UpdateSound:
 	PSH
+	LDA PPUCtrlMirror
+	EOR #PPUCtrl_NMIEnabled ; prevents nested NMI
+	STA PPUCTRL
 	LDA zWindow1
 	PHA
 	LDA #PRG_Audio
@@ -19,6 +22,8 @@ UpdateSound:
 	JSR _UpdateSound
 	PLA
 	JSR PushLower16K
+	LDA PPUCtrlMirror
+	STA PPUCTRL
 	PLL
 	RTS
 
