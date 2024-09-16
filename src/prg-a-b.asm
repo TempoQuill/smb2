@@ -787,12 +787,10 @@ LoadCHRSelect:
 
 	JSR DisableNMI
 
-	TYA
 	LDY #MUSIC_NONE
 	JSR PlayMusic
 	LDY #MUSIC_MAIN_MENU
 	JSR PlayMusic
-	TAY
 	LDA CurrentCharacter
 	STA PreviousCharacter
 	LDA CurrentWorld
